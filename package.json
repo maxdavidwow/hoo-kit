@@ -1,0 +1,15 @@
+{
+	"name": "hoo-kit",
+	"author": {
+		"name": "max david"
+	},
+	"version": "1.0.0",
+	"description": "Hoo-Kit lets you hook onto many events to handle your processes",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wow-kit/hoo-kit.git"
+	},
+	"license": "GPLv3"
+}
