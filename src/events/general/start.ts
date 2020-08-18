@@ -1,7 +1,7 @@
-import { HookitEvent } from '../../types';
+import { HookitEvent, HookCallback } from '../../types';
 
 export default {
-	subscribe(taskName: string, callback: (args) => void, args: object) {
+	subscribe(taskName: string, callback: HookCallback, args: object) {
 		// since this event will be subscribed to when starting hookit
 		// we just call the callback
 		callback(undefined);

@@ -1,4 +1,4 @@
-import { HookitEvent } from '../../types';
+import { HookitEvent, HookCallback } from '../../types';
 
 const callbacks = new Map<string, (args) => void>();
 
@@ -7,7 +7,7 @@ export default {
 		return true;
 	},
 
-	subscribe(taskName: string, callback: (args) => void, args: object) {
+	subscribe(taskName: string, callback: HookCallback, args: object) {
 		callbacks.set(taskName, callback);
 		return true;
 	},

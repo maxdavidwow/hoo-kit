@@ -4,7 +4,7 @@
 			"name": "TestTaskV1",
 			"startEvents": [
 				{
-					"event": "start"
+					"event": "general/start"
 				}
 			],
 			"command": "echo TestTaskV1 is running & pause >nul"

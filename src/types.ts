@@ -3,6 +3,8 @@ export enum TaskRetriggerStrategy {
 	Add = 'add'
 }
 
+export type EventDefinition = { event: string; args?: object };
+
 /**
  * hookit task wich is defined in the hookit.json config.
  */
@@ -11,10 +13,10 @@ export type HookitTask = {
 	name: string;
 
 	/** events that trigger the execution of the command */
-	startEvents: { event: string; args?: any }[];
+	startEvents: EventDefinition[];
 
 	/** events that stop the execution of the command */
-	stopEvents?: { event: string; args?: any }[];
+	stopEvents?: EventDefinition[];
 
 	/** the stragey to use if the startEvent triggers again after the task wa already started
 	 * 'restart' stops the execution of the task and starts it again
@@ -48,16 +50,18 @@ export type HookitConfig = {
 	};
 };
 
+export type HookCallback = (output?: object) => void;
+
 /**
  * hookit event wich can be defined in and exported from a node module.
  * 'args' refer to the arguments defined in the task json
  */
 export type HookitEvent = {
 	/** called once when hookit is started */
-	prerequisite?(args: object): boolean;
+	prerequisite?(): boolean;
 
 	/** called for every task that uses the event */
-	subscribe(taskName: string, callback: (args: object) => void, args?: object): boolean;
+	subscribe(taskName: string, callback: HookCallback, args?: object): boolean;
 
 	/** called for every task that does not use this event anymore (task deleted/modified or before the flush event) */
 	unsubscribe?(taskName: string, args?: object): boolean;
@@ -68,3 +72,5 @@ export type HookitEvent = {
 	 */
 	flush?(): void;
 };
+
+export type UUID = string;

@@ -9,21 +9,28 @@ export default function () {
 const loadedEvents = new Map<string, HookitEvent>();
 
 export function getEventByPath(eventPath: string): HookitEvent {
+	let event: HookitEvent;
 	if (loadedEvents.has(eventPath)) {
-		return loadedEvents.get(eventPath);
+		event = loadedEvents.get(eventPath);
 	} else {
-		let event: HookitEvent;
-		if (eventPath.includes('/')) {
-			// the / indicates that the event must be a custom event e.g.: mycustomevents/customevent
-			// wich will result in the path ./node_modules/hookit-cem-mycustomevents/customevent
-			const names = eventPath.split('/');
-			const customModuleName = names[0];
-			const eventName = names[1];
-			event = customEventModules.get(customModuleName)[eventName];
+		const names = eventPath.split('/');
+		const categoryName = names[0];
+		const eventName = names[1];
+		if (customEventModules.has(categoryName)) {
+			// this category is in a custom events module
+			event = customEventModules.get(categoryName)[eventName];
 		} else {
+			// catergory is a default catergory
 			// this will be a default event so we require it from our local files
-			event = require(path.resolve('../events' + eventPath));
+			// since we use require instead of import to be synchronous we get
+			// the default export because we know it is a ES5 module
+			event = require('../events/' + eventPath).default;
+		}
+
+		if (event.prerequisite) {
+			event.prerequisite();
 		}
 		loadedEvents.set(eventPath, event);
 	}
+	return event;
 }
