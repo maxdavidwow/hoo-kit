@@ -3,21 +3,17 @@ import { HookitEvent, HookCallback } from '../../types';
 const callbacks = new Map<string, (args) => void>();
 
 export default {
-	prerequisite(args: object) {
+	subscribe(uuid: string, callback: HookCallback, args: object) {
+		callbacks.set(uuid, callback);
 		return true;
 	},
 
-	subscribe(taskName: string, callback: HookCallback, args: object) {
-		callbacks.set(taskName, callback);
-		return true;
-	},
-
-	unsubscribe(taskName: string, args: object) {
+	unsubscribe(uuid: string, args: object) {
 		// since unsubscribe will be called when the event is removed or hookit is closed properly
 		// we just call the callback inside this unsubscribe method
-		callbacks.get(taskName)(undefined);
+		callbacks.get(uuid)(undefined);
 		// after calling it, since this is still the unsubscribe method, we remove the callback
-		callbacks.delete(taskName);
+		callbacks.delete(uuid);
 		return true;
 	}
 } as HookitEvent;

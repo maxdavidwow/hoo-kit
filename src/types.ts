@@ -61,10 +61,10 @@ export type HookitEvent = {
 	prerequisite?(): boolean;
 
 	/** called for every task that uses the event */
-	subscribe(taskName: string, callback: HookCallback, args?: object): boolean;
+	subscribe(uuid: string, callback: HookCallback, args?: object): boolean;
 
 	/** called for every task that does not use this event anymore (task deleted/modified or before the flush event) */
-	unsubscribe?(taskName: string, args?: object): boolean;
+	unsubscribe?(uuid: string, args?: object): boolean;
 
 	/**
 	 * called once when hookit was stopped properly. Should be used to release locks (e.g. on files)

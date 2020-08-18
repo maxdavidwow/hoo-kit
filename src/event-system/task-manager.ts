@@ -1,10 +1,41 @@
 import { HookitTask, UUID } from '../types';
 import { getConfig } from '../config';
-import { hook } from './hook-manager';
+import { hook, unhook } from './hook-manager';
+import * as debounce from 'debounce';
 
 export default function () {
+	hookOntoProcessExit();
 	readTasks();
 	initAllTasks();
+}
+
+function hookOntoProcessExit() {
+	const debouncedCleanUp = cleanUpTasks;
+
+	// do something when app is closing
+	process.on('exit', debouncedCleanUp);
+
+	// catches ctrl+c event
+	process.on('SIGINT', debouncedCleanUp);
+
+	// catches "kill pid" (for example: nodemon restart)
+	process.on('SIGUSR1', debouncedCleanUp);
+	process.on('SIGUSR2', debouncedCleanUp);
+
+	// catches uncaught exceptions
+	process.on('uncaughtException', debouncedCleanUp);
+}
+
+function cleanUpTasks() {
+	// unhook from all events for all task instances
+	taskInstances.forEach((instance) => {
+		for (const hookId of instance.startHooks) {
+			unhook(hookId);
+		}
+		for (const hookId of instance.stopHooks) {
+			unhook(hookId);
+		}
+	});
 }
 
 export const tasks = new Map<string, HookitTask>();
@@ -55,7 +86,6 @@ function initTask(task: HookitTask) {
 	// hook onto start end stop events
 	for (const eventDef of task.startEvents) {
 		const hookId = hook({
-			taskName: task.name,
 			eventPath: eventDef.event,
 			callback: taskInstance.runCommand,
 			args: eventDef.args
@@ -65,7 +95,6 @@ function initTask(task: HookitTask) {
 	if (task.stopEvents) {
 		for (const eventDef of task.stopEvents) {
 			const hookId = hook({
-				taskName: task.name,
 				eventPath: eventDef.event,
 				callback: taskInstance.stop,
 				args: eventDef.args

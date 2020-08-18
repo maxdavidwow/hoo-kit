@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { requireCustomEventModules, customEventModules } from './custom-events';
 import { HookitEvent } from '../types';
 
