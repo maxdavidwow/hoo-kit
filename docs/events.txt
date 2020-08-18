@@ -1,0 +1,36 @@
+General:
+	start: Triggered when hookit is started (This can be used for an initial trigger) and also when this event is being assigned to the task.
+	end: Triggered when hookit is being stopped properly and also when this event is being removed from the task.
+
+Time:
+	date: Triggered at the given time.
+	periodic: Triggered every time the interval has passed periodically since the start of hookit.
+
+Filesystem:
+	created: Triggered after a file/directory was created.
+	modified: Triggered after a file/directory was modified.
+	deleted: Triggered after a file/directory was deleted.
+
+Git: all these events are triggered when the underlying git hook is triggered (https://git-scm.com/docs/githooks)
+	applypatch-msg
+	pre-applypatch
+	post-applypatch
+	pre-commit
+	prepare-commit-msg
+	commit-msg
+	post-commit
+	pre-rebase
+	post-checkout
+	post-merge
+	pre-receive
+	update
+	post-receive
+	post-update
+	pre-auto-gc
+	post-rewrite
+	pre-push
+
+VSCode events (not in default events):
+	before-save: Triggered before a file will be saved.
+	after-save: Triggered after a file was being saved.
+	expose as many VSCode events as possible (that could be usefull)
