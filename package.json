@@ -8,8 +8,8 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"start": "tsc && node dist/index.js --customUiPath D:/dev/hoo-kit/default-ui",
-		"run": "node dist/index.js --customUiPath D:/dev/hoo-kit/default-ui",
+		"start": "tsc && node dist/index.js --customUiPath D:/dev/hoo-kit/default-ui/dist/default-ui",
+		"run": "node dist/index.js --customUiPath D:/dev/hoo-kit/default-ui/dist/default-ui",
 		"build": "tsc"
 	},
 	"repository": {

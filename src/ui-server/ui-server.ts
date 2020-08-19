@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as url from 'url';
 import { getArgument } from '../config';
 import { mainProcess, MainProcessEvents } from '../main-process';
+import * as util from 'util';
 
 const basePath = getArgument('customUiPath') || path.join(__dirname, '/default-ui');
 
@@ -19,7 +20,6 @@ export default function () {
 	// start server for ui
 	const server = http
 		.createServer((req, res) => {
-			console.log(JSON.stringify(req));
 			const isApiCall = false;
 
 			if (isApiCall) {
@@ -29,11 +29,12 @@ export default function () {
 			}
 		})
 		.listen(address[1], address[0]);
+
 	mainProcess.on(MainProcessEvents.Close, () => {
-		console.log('Shutting down ui-server');
+		console.log('Shutting down Ui-server');
 		server.close();
 	});
-	console.log('Server running at http://' + address[0] + ':' + address[1]);
+	console.log('Ui-Server running at http://' + address[0] + ':' + address[1]);
 }
 
 function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {}

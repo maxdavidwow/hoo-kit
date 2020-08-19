@@ -24,5 +24,9 @@ export function hookOntoProcessExit() {
 	process.on('SIGUSR2', onExit);
 
 	// catches uncaught exceptions
-	process.on('uncaughtException', onExit);
+	process.on('uncaughtException', (error) => {
+		onExit();
+		// log uncaught error
+		console.error(error);
+	});
 }
