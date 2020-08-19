@@ -1,0 +1,13 @@
+1. first argument is the path to the hookit.json, if omitted the working directory will be used
+
+options:
+	// flag wich indicates if the ui server will be run
+	// default: true
+	--runUiServer: true | false
+
+	// if passed the server will use the html file at the given path
+	--customUiPath: string
+
+	// if passed the server will use the given address
+	// default: 'localhost:8080'
+	--uiServerAddress: string

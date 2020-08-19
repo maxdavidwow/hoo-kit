@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { HookitConfig } from './types';
+import * as parseArgs from 'minimist';
 
 let config: HookitConfig;
 export function loadConfig(): boolean {
@@ -19,4 +20,9 @@ export function saveConfig() {
 	fs.writeFileSync(configPath, JSON.stringify(config));
 }
 
-const configPath = process.argv[2] || path.join(process.cwd(), 'hookit.json');
+const args = parseArgs(process.argv.slice(2));
+export function getArgument(argumentName: string) {
+	return args[argumentName];
+}
+
+const configPath = args._[0] || path.join(process.cwd(), 'hookit.json');

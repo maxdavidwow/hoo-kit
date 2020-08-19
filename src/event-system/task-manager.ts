@@ -1,30 +1,14 @@
 import { HookitTask, UUID } from '../types';
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
-import * as debounce from 'debounce';
+import { mainProcess, MainProcessEvents } from '../main-process';
 
 export default function () {
-	hookOntoProcessExit();
 	readTasks();
 	initAllTasks();
 }
 
-function hookOntoProcessExit() {
-	const debouncedCleanUp = cleanUpTasks;
-
-	// do something when app is closing
-	process.on('exit', debouncedCleanUp);
-
-	// catches ctrl+c event
-	process.on('SIGINT', debouncedCleanUp);
-
-	// catches "kill pid" (for example: nodemon restart)
-	process.on('SIGUSR1', debouncedCleanUp);
-	process.on('SIGUSR2', debouncedCleanUp);
-
-	// catches uncaught exceptions
-	process.on('uncaughtException', debouncedCleanUp);
-}
+mainProcess.on(MainProcessEvents.Close, cleanUpTasks);
 
 function cleanUpTasks() {
 	// unhook from all events for all task instances

@@ -1,22 +1,21 @@
+import { loadConfig } from './config';
 import startEventManger from './event-system/event-manager';
 import startTaskManager from './event-system/task-manager';
-import { loadConfig } from './config';
+import setupUiServer from './ui-server/ui-server';
+import { hookOntoProcessExit, mainProcess, MainProcessEvents } from './main-process';
 
 export * from './types';
 export { addCustomEventsModule } from './event-system/custom-events';
 
-// TODO: everything below should be outsourced to a hookit-cli module
-
 function init() {
+	hookOntoProcessExit();
 	if (!loadConfig()) {
-		// return if loading the config failed for whatever reason
+		mainProcess.emit(MainProcessEvents.Close);
 		return;
 	}
 	startEventManger();
 	startTaskManager();
+	setupUiServer();
 }
 
 init();
-
-import * as repl from 'repl';
-repl.start('> ');
