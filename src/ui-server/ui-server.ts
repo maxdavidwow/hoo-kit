@@ -5,6 +5,9 @@ import * as url from 'url';
 import { getArgument } from '../config';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import * as util from 'util';
+import { tasks, taskInstances } from '../event-system/task-manager';
+import { defaultEvents } from '../event-system/event-manager';
+import { customEventModules } from '../event-system/custom-events';
 
 const basePath = getArgument('customUiPath') || path.join(__dirname, '/default-ui');
 
@@ -20,7 +23,7 @@ export default function () {
 	// start server for ui
 	const server = http
 		.createServer((req, res) => {
-			const isApiCall = false;
+			const isApiCall = req.url.startsWith('/api');
 
 			if (isApiCall) {
 				handleApiCall(req, res);
@@ -36,8 +39,6 @@ export default function () {
 	});
 	console.log('Ui-Server running at http://' + address[0] + ':' + address[1]);
 }
-
-function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {}
 
 function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 	// parse URL
@@ -92,3 +93,60 @@ function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) 
 		});
 	});
 }
+
+function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {
+	const callElements = req.url.split('/api/')[1].split('/');
+	const type = callElements[0];
+
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+	// res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+	res.setHeader('Content-type', 'application/json');
+
+	switch (type) {
+		default: {
+			const name = callElements[1];
+			if (api[type][name]) {
+				res.statusCode = 200;
+				res.end(api[type][name](req));
+			} else {
+				res.statusCode = 404;
+				res.end('Api Not found.');
+			}
+			break;
+		}
+	}
+}
+
+const api = {
+	resources: {
+		tasks: () => {
+			const entries = [];
+			tasks.forEach((task) => {
+				entries.push(task);
+			});
+			return JSON.stringify(entries);
+		},
+		taskInstances: () => {
+			const entries = [];
+			taskInstances.forEach((instance) => {
+				entries.push(instance);
+			});
+			return JSON.stringify(entries);
+		},
+		events: () => {
+			const events = {
+				default: [],
+				custom: []
+			};
+			events.default = [...defaultEvents];
+			customEventModules.forEach((cem) => {
+				Object.keys(cem).forEach((eventName) => events.custom.push(eventName));
+			});
+			return JSON.stringify(events);
+		}
+	},
+
+	methods: {}
+};

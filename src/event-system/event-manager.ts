@@ -5,7 +5,36 @@ export default function () {
 	requireCustomEventModules();
 }
 
-const loadedEvents = new Map<string, HookitEvent>();
+export const defaultEvents = [
+	'general/start',
+	'general/end',
+
+	'time/date',
+	'time/periodic',
+
+	'filesystem/created',
+	'filesystem/modified',
+	'filesystem/deleted',
+
+	'git/applypatch-msg',
+	'git/pre-applypatch',
+	'git/post-applypatch',
+	'git/pre-commit',
+	'git/prepare-commit-msg',
+	'git/commit-msg',
+	'git/post-commit',
+	'git/pre-rebase',
+	'git/post-checkout',
+	'git/post-merge',
+	'git/pre-receive',
+	'git/update',
+	'git/post-receive',
+	'git/post-update',
+	'git/pre-auto-gc',
+	'git/post-rewrite',
+	'git/pre-push'
+];
+export const loadedEvents = new Map<string, HookitEvent>();
 
 export function getEventByPath(eventPath: string): HookitEvent {
 	let event: HookitEvent;
