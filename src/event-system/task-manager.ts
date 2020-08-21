@@ -47,6 +47,7 @@ export class TaskInstance {
 	runCommand(output?: object) {
 		// output is the optional object passed if the event returns something
 		console.log('Run task: ' + this.task.name);
+		// start execution of terminal/child_process
 	}
 
 	stop() {

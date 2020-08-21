@@ -1,20 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+
 const DEVELOP = true;
-const basePath = (DEVELOP ? 'http://localhost:8080' : window.location.origin) + '/api/';
+const basePath = DEVELOP ? 'localhost:8080' : window.location.host;
 
 @Injectable({
 	providedIn: 'root'
 })
 export class ServerService {
-	constructor(private http: HttpClient) {}
+	private socket: WebSocketSubject<string>;
 
-	async get<T>(resource: string) {
-		return await this.http.get<T>(basePath + 'resources/' + resource).toPromise();
+	constructor(private http: HttpClient) {
+		this.socket = webSocket('ws://' + basePath);
+		this.socket.asObservable().subscribe(this.handleSocketMessage.bind(this));
 	}
 
-	async post<T>(method: string, args: object) {
+	private handleSocketMessage(message: string) {
+		console.log(message);
+	}
+
+	async resource<T>(resource: string) {
+		return await this.http.post<T>(basePath + 'resources/' + resource, undefined).toPromise();
+	}
+
+	async call<T>(method: string, args: object) {
 		return (await this.http.post(basePath + 'methods/' + method, args).toPromise()) as T;
 	}
 }

@@ -1,10 +1,10 @@
 import * as http from 'http';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as WS from 'ws';
 import * as url from 'url';
 import { getArgument } from '../config';
 import { mainProcess, MainProcessEvents } from '../main-process';
-import * as util from 'util';
 import { tasks, taskInstances } from '../event-system/task-manager';
 import { defaultEvents } from '../event-system/event-manager';
 import { customEventModules } from '../event-system/custom-events';
@@ -23,21 +23,38 @@ export default function () {
 	// start server for ui
 	const server = http
 		.createServer((req, res) => {
-			const isApiCall = req.url.startsWith('/api');
-
-			if (isApiCall) {
-				handleApiCall(req, res);
-			} else {
-				handleFileRequest(req, res);
-			}
+			handleFileRequest(req, res);
 		})
 		.listen(address[1], address[0]);
 
-	mainProcess.on(MainProcessEvents.Close, () => {
-		console.log('Shutting down Ui-server');
-		server.close();
+	// start api websocket server
+	const socketServer = new WS.Server({ host: address[0], port: address[1] });
+	socketServer.on('connection', (socket) => {
+		socket.isAlive = true;
+		socket.on('message', () => (socket.isAlive = true));
+		socket.on('message', handleApiCall);
 	});
-	console.log('Ui-Server running at http://' + address[0] + ':' + address[1]);
+
+	const ping = () => {
+		socketServer.clients.forEach((socket) => {
+			if (socket.isAlive === false) return socket.terminate();
+			socket.isAlive = false;
+			socket.ping(null);
+		});
+	};
+	const pingInterval = setInterval(ping, 30000);
+	socketServer.on('close', function close() {
+		clearInterval(pingInterval);
+	});
+
+	mainProcess.on(MainProcessEvents.Close, () => {
+		console.log('Shutting down UI-server');
+		clearInterval(pingInterval);
+		socketServer.destroy();
+		socketServer.close();
+	});
+
+	console.log('UI-Server running at http://' + address[0] + ':' + address[1]);
 }
 
 function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -77,9 +94,6 @@ function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) 
 			return;
 		}
 
-		// if is a directory search for index file matching the extention
-		// if (fs.statSync(filepath).isDirectory()) pathname += '/index' + ext;
-
 		// read file from file system
 		fs.readFile(filepath, (err, data) => {
 			if (err) {
@@ -94,29 +108,62 @@ function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) 
 	});
 }
 
-function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {
+async function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {
 	const callElements = req.url.split('/api/')[1].split('/');
 	const type = callElements[0];
 
 	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-	// res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 
 	res.setHeader('Content-type', 'application/json');
 
+	// we allow all post requests
+	if (req.method === 'OPTIONS') {
+		res.statusCode = 200;
+		res.end();
+		return;
+	}
+
+	let error;
+	let result;
 	switch (type) {
 		default: {
 			const name = callElements[1];
 			if (api[type][name]) {
 				res.statusCode = 200;
-				res.end(api[type][name](req));
+				result = api[type][name](req);
 			} else {
-				res.statusCode = 404;
-				res.end('Api Not found.');
+				error = 'Api Not found.';
 			}
 			break;
 		}
 	}
+	// if promise
+	if (result.then) {
+		result = await result.then((r: string) => res.end(r));
+	}
+
+	res.end(
+		JSON.stringify({
+			error,
+			result
+		})
+	);
+}
+
+function getJsonBody(req: http.IncomingMessage) {
+	return new Promise((res) => {
+		const chunks = [];
+		req.on('data', (chunk) => {
+			chunks.push(chunk);
+		});
+		req.on('end', () => {
+			const data = String(Buffer.concat(chunks));
+			console.log(data);
+			res(JSON.parse(data));
+		});
+	});
 }
 
 const api = {
@@ -126,14 +173,14 @@ const api = {
 			tasks.forEach((task) => {
 				entries.push(task);
 			});
-			return JSON.stringify(entries);
+			return entries;
 		},
 		taskInstances: () => {
 			const entries = [];
 			taskInstances.forEach((instance) => {
 				entries.push(instance);
 			});
-			return JSON.stringify(entries);
+			return entries;
 		},
 		events: () => {
 			const events = {
@@ -144,9 +191,14 @@ const api = {
 			customEventModules.forEach((cem) => {
 				Object.keys(cem).forEach((eventName) => events.custom.push(eventName));
 			});
-			return JSON.stringify(events);
+			return events;
 		}
 	},
 
-	methods: {}
+	methods: {
+		saveTask: async (req: http.IncomingMessage) => {
+			const params = await getJsonBody(req);
+			return params;
+		}
+	}
 };

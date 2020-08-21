@@ -8,9 +8,9 @@ import { ServerService } from 'src/app/services/server/server.service';
 })
 export class TasksComponent {
 	tasks;
-	constructor(server: ServerService) {
-		server.get<Array<object>>('tasks').then((res) => {
-			this.tasks = res;
-		});
+	constructor(private server: ServerService) {}
+
+	saveTask(taskName: string) {
+		this.server.call('saveTask', { taskName });
 	}
 }
