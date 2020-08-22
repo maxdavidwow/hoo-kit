@@ -8,6 +8,7 @@ media/
 
 .vscode/
 
+hookit.json
 gulpfile.js
 tsconfig.json
 tslint.json

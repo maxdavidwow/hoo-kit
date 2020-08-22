@@ -2,7 +2,7 @@
 	"name": "hoo-kit",
 	"author": "wow-kit",
 	"publishConfig": {
-		"registry": "https://npm.pkg.github.com/"
+		"registry": "https://npm.pkg.github.com/@wow-kit"
 	},
 	"version": "0.0.1",
 	"description": "Hoo-Kit lets you hook onto many events to handle your processes",
