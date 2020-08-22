@@ -1,6 +1,6 @@
 <span>Tasks</span>
 <div>
-	<ng-container *ngFor="let task of tasks">
+	<ng-container *ngFor="let task of tasks | async">
 		<span>{{ task.name }}</span>
 		<button (click)="saveTask(task.name)">save</button>
 	</ng-container>

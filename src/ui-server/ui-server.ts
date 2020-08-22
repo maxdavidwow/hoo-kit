@@ -8,6 +8,13 @@ import { mainProcess, MainProcessEvents } from '../main-process';
 import { tasks, taskInstances } from '../event-system/task-manager';
 import { defaultEvents } from '../event-system/event-manager';
 import { customEventModules } from '../event-system/custom-events';
+import { UUID } from '../types';
+import { v4 as uuid, validate as validateUUID } from 'uuid';
+
+// extending web socket type (really quirky types support for ws...)
+type WebSocket = WS & { isAlive: boolean };
+
+type WSMessage = { id: UUID; action: string; actionPath?: string; error?: string; payload? };
 
 const basePath = getArgument('customUiPath') || path.join(__dirname, '/default-ui');
 
@@ -28,18 +35,42 @@ export default function () {
 		.listen(address[1], address[0]);
 
 	// start api websocket server
-	const socketServer = new WS.Server({ host: address[0], port: address[1] });
-	socketServer.on('connection', (socket) => {
+	const socketServer = new WS.Server({ server });
+	socketServer.on('connection', (socket: WebSocket) => {
 		socket.isAlive = true;
-		socket.on('message', () => (socket.isAlive = true));
-		socket.on('message', handleApiCall);
+		socket.on('message', (data: string) => {
+			let message: WSMessage;
+			try {
+				message = JSON.parse(data);
+				if (!message) {
+					throw 'Invalid message.';
+				}
+				if (!message.action) {
+					throw 'No Action.';
+				}
+				if (!validateUUID(message.id)) {
+					throw 'Inalid id.';
+				}
+			} catch (ex) {
+				socket.send(JSON.stringify({ message, payload: undefined, error: ex }));
+				return;
+			}
+			if (message.action === 'PONG') {
+				socket.isAlive = true;
+			} else {
+				handleApiCall(message, socket);
+			}
+		});
 	});
 
 	const ping = () => {
-		socketServer.clients.forEach((socket) => {
-			if (socket.isAlive === false) return socket.terminate();
+		// iteralte over all sockets and check if they are still used
+		socketServer.clients.forEach((socket: WebSocket) => {
+			if (socket.isAlive === false) {
+				return socket.terminate();
+			}
 			socket.isAlive = false;
-			socket.ping(null);
+			socket.send(JSON.stringify({ id: uuid(), action: 'PING' }));
 		});
 	};
 	const pingInterval = setInterval(ping, 30000);
@@ -50,8 +81,8 @@ export default function () {
 	mainProcess.on(MainProcessEvents.Close, () => {
 		console.log('Shutting down UI-server');
 		clearInterval(pingInterval);
-		socketServer.destroy();
 		socketServer.close();
+		server.close();
 	});
 
 	console.log('UI-Server running at http://' + address[0] + ':' + address[1]);
@@ -108,62 +139,79 @@ function handleFileRequest(req: http.IncomingMessage, res: http.ServerResponse) 
 	});
 }
 
-async function handleApiCall(req: http.IncomingMessage, res: http.ServerResponse) {
-	const callElements = req.url.split('/api/')[1].split('/');
-	const type = callElements[0];
-
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-	res.setHeader('Content-type', 'application/json');
-
-	// we allow all post requests
-	if (req.method === 'OPTIONS') {
-		res.statusCode = 200;
-		res.end();
-		return;
-	}
-
+async function handleApiCall(message: WSMessage, socket: WebSocket) {
 	let error;
 	let result;
-	switch (type) {
-		default: {
-			const name = callElements[1];
-			if (api[type][name]) {
-				res.statusCode = 200;
-				result = api[type][name](req);
+	switch (message.action) {
+		case 'OPEN_RESOURCE_STREAM': {
+			// start streaming the resource
+			// basically we listen for changes to the resource changes
+			// on a running instance can only be made by methods
+
+			// check if resource exists
+			if (!api.resources[message.actionPath]) {
+				error = 'Resource Not found.';
+				break;
+			}
+			if (!resourceStreams.has(message.actionPath)) {
+				// create resource stream instance
+				resourceStreams.set(message.actionPath, []);
+			}
+			const streams = resourceStreams.get(message.actionPath);
+			// we create a new message instance with the action changed to resource
+			// since this will be the desired action for succeeding stream responses
+			streams.push({
+				message: { ...message, action: 'RESOURCE', payload: undefined },
+				socket
+			});
+		}
+		case 'RESOURCE': {
+			if (api.resources[message.actionPath]) {
+				result = api.resources[message.actionPath](message);
 			} else {
-				error = 'Api Not found.';
+				error = 'Resource Not found.';
 			}
 			break;
 		}
-	}
-	// if promise
-	if (result.then) {
-		result = await result.then((r: string) => res.end(r));
+		case 'CLOSE_RESOURCE_STREAM': {
+			if (resourceStreams.has(message.action)) {
+				const streams = resourceStreams.get(message.action);
+				const ownStreamIndex = streams.findIndex((s) => s.message.id === message.id);
+				streams.splice(ownStreamIndex, 1);
+				if (streams.length > 0) {
+					resourceStreams.delete(message.action);
+				}
+			}
+			break;
+		}
+
+		case 'METHOD': {
+			if (api.methods[message.actionPath]) {
+				result = api.methods[message.actionPath](message);
+			} else {
+				error = 'Method Not found.';
+			}
+			break;
+		}
+
+		default:
+			error = 'Action: ' + message.action + ' not supported.';
 	}
 
-	res.end(
-		JSON.stringify({
-			error,
-			result
-		})
-	);
+	message.error = error;
+	message.payload = result;
+	socket.send(JSON.stringify(message));
 }
 
-function getJsonBody(req: http.IncomingMessage) {
-	return new Promise((res) => {
-		const chunks = [];
-		req.on('data', (chunk) => {
-			chunks.push(chunk);
-		});
-		req.on('end', () => {
-			const data = String(Buffer.concat(chunks));
-			console.log(data);
-			res(JSON.parse(data));
-		});
-	});
+const resourceStreams = new Map<string, { message: WSMessage; socket: WebSocket }[]>();
+function notifyResourceChanged(...resources: string[]) {
+	// for every resource and every streaming socket
+	for (const resource of resources) {
+		const streams = resourceStreams.get(resource);
+		for (const stream of streams) {
+			setImmediate(handleApiCall.bind(this, stream.message, stream.socket));
+		}
+	}
 }
 
 const api = {
@@ -196,9 +244,9 @@ const api = {
 	},
 
 	methods: {
-		saveTask: async (req: http.IncomingMessage) => {
-			const params = await getJsonBody(req);
-			return params;
+		saveTask: (message: WSMessage) => {
+			notifyResourceChanged('tasks');
+			return message.payload;
 		}
 	}
 };

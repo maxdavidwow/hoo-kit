@@ -7,10 +7,12 @@ import { AppComponent } from './app.component';
 import { TasksComponent } from './components/tasks/tasks.component';
 import { TaskInstancesComponent } from './components/task-instances/task-instances.component';
 import { EventsComponent } from './components/events/events.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MainViewComponent } from './views/main-view/main-view.component';
 
 @NgModule({
-	declarations: [AppComponent, TasksComponent, TaskInstancesComponent, EventsComponent],
-	imports: [BrowserModule, HttpClientModule, AppRoutingModule],
+	declarations: [AppComponent, TasksComponent, TaskInstancesComponent, EventsComponent, MainViewComponent],
+	imports: [BrowserModule, HttpClientModule, AppRoutingModule, BrowserAnimationsModule],
 	providers: [],
 	bootstrap: [AppComponent]
 })

@@ -8,6 +8,10 @@ options:
 	// if passed the server will use the html file at the given path
 	--customUiPath: string
 
-	// if passed the server will use the given address
+	// if passed the ui-server will use the given address
 	// default: 'localhost:8080'
 	--uiServerAddress: string
+
+	// if passed the ui-server will use the given address for the websocket
+	// default: 'localhost:8081'
+	--uiServerWebsocketAddress: string
