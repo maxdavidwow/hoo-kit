@@ -13,6 +13,34 @@
 				}
 			],
 			"command": "echo TestTaskV1 is running & pause >nul"
+		},
+		{
+			"name": "TestTaskV2",
+			"startEvents": [
+				{
+					"event": "general/start"
+				}
+			],
+			"stopEvents": [
+				{
+					"event": "general/end"
+				}
+			],
+			"command": "echo TestTaskV1 is running & pause >nul"
+		},
+		{
+			"name": "TestTaskV3",
+			"startEvents": [
+				{
+					"event": "general/start"
+				}
+			],
+			"stopEvents": [
+				{
+					"event": "general/end"
+				}
+			],
+			"command": "echo TestTaskV1 is running & pause >nul"
 		}
 	]
 }

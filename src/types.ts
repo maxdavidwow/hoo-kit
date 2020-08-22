@@ -6,7 +6,7 @@ export enum TaskRetriggerStrategy {
 export type EventDefinition = { event: string; args?: object };
 
 /**
- * hookit task which is defined in the hookit.json config.
+ * hoo-kit task which is defined in the hoo-kit.json config.
  */
 export type HookitTask = {
 	/** the name of the task */
@@ -37,13 +37,13 @@ export type HookitTask = {
 };
 
 /**
- * hookit config which is defined in the hookit.json file.
+ * hoo-kit config which is defined in the hoo-kit.json file.
  */
 export type HookitConfig = {
-	/** list of hookit task that will be loaded upon start */
+	/** list of hoo-kit task that will be loaded upon start */
 	tasks?: HookitTask[];
 
-	/** object where the defaults for a hookit task can be overwritten */
+	/** object where the defaults for a hoo-kit task can be overwritten */
 	defaults?: {
 		retriggerStrategy?: TaskRetriggerStrategy;
 		hideTerminal?: boolean;
@@ -53,11 +53,11 @@ export type HookitConfig = {
 export type HookCallback = (output?: object) => void;
 
 /**
- * hookit event which can be defined in and exported from a node module.
+ * hoo-kit event which can be defined in and exported from a node module.
  * 'args' refer to the arguments defined in the task json
  */
 export type HookitEvent = {
-	/** called once when hookit is started */
+	/** called once when hoo-kit is started */
 	prerequisite?(): boolean;
 
 	/** called for every task that uses the event */
@@ -67,7 +67,7 @@ export type HookitEvent = {
 	unsubscribe?(uuid: string, args?: object): boolean;
 
 	/**
-	 * called once when hookit was stopped properly. Should be used to release locks (e.g. on files)
+	 * called once when hoo-kit was stopped properly. Should be used to release locks (e.g. on files)
 	 * or closing sockets and NOT for freeing resources like maps or objects
 	 */
 	flush?(): void;

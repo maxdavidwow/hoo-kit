@@ -49,3 +49,43 @@ body {
 	width: 100%;
 	margin: 0;
 }
+
+$borderWidth: 1px;
+$borderColor: #c7c7c7;
+.border {
+	border: $borderWidth solid $borderColor;
+}
+
+$sides: ('top', 'bottom', 'left', 'right');
+@each $side in $sides {
+	.border-#{$side} {
+		border-#{$side}: $borderWidth solid $borderColor;
+	}
+}
+
+$primary-color: #27ae60;
+.primary-color {
+	color: $primary-color;
+}
+.primary-background {
+	background-color: $primary-color;
+}
+
+button {
+	background-color: white;
+	border: 1px solid black;
+	outline: none;
+	cursor: pointer;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+
+	padding: 4px;
+	padding-right: 3px;
+	width: fit-content;
+
+	&:active {
+		background-color: black;
+		color: white;
+	}
+}

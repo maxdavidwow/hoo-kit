@@ -1,0 +1,23 @@
+:host {
+	display: flex;
+	margin: 20px auto;
+}
+
+.tasks-container {
+	> div {
+		display: flex;
+		flex-direction: column;
+
+		padding: 20px;
+		margin-bottom: 20px;
+
+		&.selectable {
+			user-select: none;
+			cursor: pointer;
+		}
+
+		> .name {
+			font-size: 18px;
+		}
+	}
+}

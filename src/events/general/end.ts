@@ -9,7 +9,7 @@ export default {
 	},
 
 	unsubscribe(uuid: string, args: object) {
-		// since unsubscribe will be called when the event is removed or hookit is closed properly
+		// since unsubscribe will be called when the event is removed or hoo-kit is closed properly
 		// we just call the callback inside this unsubscribe method
 		callbacks.get(uuid)(undefined);
 		// after calling it, since this is still the unsubscribe method, we remove the callback

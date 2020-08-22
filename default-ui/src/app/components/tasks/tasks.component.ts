@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ServerService } from 'src/app/services/server/server.service';
+import { HookitTask } from '../../../../../src/types';
 
 @Component({
 	selector: 'hookit-tasks',
@@ -7,11 +8,10 @@ import { ServerService } from 'src/app/services/server/server.service';
 	styleUrls: ['./tasks.component.scss']
 })
 export class TasksComponent {
-	tasks = this.server.resourceStream('tasks');
+	selectedTask: string;
+	tasks = this.server.resourceStream<HookitTask[]>('tasks');
 
-	constructor(private server: ServerService) {
-		this.tasks.subscribe((response) => console.log(response));
-	}
+	constructor(private server: ServerService) {}
 
 	saveTask(taskName: string) {
 		this.server.call('saveTask', { taskName });

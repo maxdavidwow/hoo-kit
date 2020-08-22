@@ -1,7 +1,13 @@
-<span>Tasks</span>
-<div>
-	<ng-container *ngFor="let task of tasks | async">
-		<span>{{ task.name }}</span>
-		<button (click)="saveTask(task.name)">save</button>
-	</ng-container>
+<div class="tasks-container">
+	<div
+		*ngFor="let task of tasks | async"
+		class="border"
+		(click)="selectedTask = task.name"
+		[class.selectable]="selectedTask !== task.name"
+	>
+		<span class="name primary-color">{{ task.name }}</span>
+		<ng-container *ngIf="selectedTask === task.name">
+			<button>EDIT</button>
+		</ng-container>
+	</div>
 </div>

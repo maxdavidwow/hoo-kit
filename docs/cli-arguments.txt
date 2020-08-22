@@ -1,4 +1,4 @@
-1. first argument is the path to the hookit.json, if omitted the working directory will be used
+1. first argument is the path to the hoo-kit.json, if omitted the working directory will be used
 
 options:
 	// flag which indicates if the ui server will be run

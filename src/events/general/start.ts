@@ -2,7 +2,7 @@ import { HookitEvent, HookCallback } from '../../types';
 
 export default {
 	subscribe(uuid: string, callback: HookCallback, args: object) {
-		// since this event will be subscribed to when starting hookit
+		// since this event will be subscribed to when starting hoo-kit
 		// we just call the callback
 		callback(undefined);
 		return true;

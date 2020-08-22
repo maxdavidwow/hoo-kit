@@ -4,11 +4,11 @@ import { filter } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Observable, Subscriber } from 'rxjs';
 
+import { UUID } from '../../../../../src/types';
+import { WSMessage } from '../../../../../src/ui-server/ui-server';
+
 const DEVELOP = true;
 const basePath = DEVELOP ? 'localhost:8080' : window.location.host;
-
-type UUID = string;
-type WSMessage = { id: UUID; action: string; actionPath?: string; error?: string; payload? };
 
 function responseForId(id: UUID) {
 	return filter((value: WSMessage) => value.id === id);
@@ -20,7 +20,10 @@ function responseForId(id: UUID) {
 export class ServerService {
 	private socket: WebSocketSubject<WSMessage>;
 
-	private resourceStreams = new Map<string, { value; subscribers: Subscriber<unknown>[]; unsubscribe: () => void }>();
+	private resourceStreams = new Map<
+		string,
+		{ value: (newValue?) => unknown; subscribers: Subscriber<unknown>[]; unsubscribe: () => void }
+	>();
 
 	constructor() {
 		this.socket = webSocket('ws://' + basePath);
@@ -61,19 +64,24 @@ export class ServerService {
 			let stream = this.resourceStreams.get(resource);
 			if (stream) {
 				if (stream.value !== undefined) {
-					subscriber.next(stream.value);
+					subscriber.next(stream.value() as T);
 				}
 			} else {
 				// init resource stream
 				const id = uuid();
 				this.socket.next({ id, action: 'OPEN_RESOURCE_STREAM', actionPath: resource });
 				const subscribtion = this.socket.pipe(responseForId(id)).subscribe((message) => {
-					stream.value = message.payload;
+					stream.value(message.payload);
 					for (const sub of stream.subscribers) {
-						sub.next(stream.value);
+						sub.next(stream.value());
 					}
 				});
-				stream = { value: undefined, subscribers: [], unsubscribe: subscribtion.unsubscribe };
+				let value;
+				stream = {
+					value: (newValue) => (newValue !== undefined ? (value = newValue) : Array.isArray(value) ? [...value] : { ...value }),
+					subscribers: [],
+					unsubscribe: subscribtion.unsubscribe
+				};
 				this.resourceStreams.set(resource, stream);
 			}
 			stream.subscribers.push(subscriber);

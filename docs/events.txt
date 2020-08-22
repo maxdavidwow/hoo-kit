@@ -1,10 +1,10 @@
 General:
-	start: Triggered when hookit is started (This can be used for an initial trigger) and also when this event is being assigned to the task.
-	end: Triggered when hookit is being stopped properly and also when this event is being removed from the task.
+	start: Triggered when hoo-kit is started (This can be used for an initial trigger) and also when this event is being assigned to the task.
+	end: Triggered when hoo-kit is being stopped properly and also when this event is being removed from the task.
 
 Time:
 	date: Triggered at the given time.
-	periodic: Triggered every time the interval has passed periodically since the start of hookit.
+	periodic: Triggered every time the interval has passed periodically since the start of hoo-kit.
 
 Filesystem:
 	created: Triggered after a file/directory was created.

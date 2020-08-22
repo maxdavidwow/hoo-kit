@@ -14,7 +14,7 @@ import { v4 as uuid, validate as validateUUID } from 'uuid';
 // extending web socket type (really quirky types support for ws...)
 type WebSocket = WS & { isAlive: boolean };
 
-type WSMessage = { id: UUID; action: string; actionPath?: string; error?: string; payload? };
+export type WSMessage = { id: UUID; action: string; actionPath?: string; error?: string; payload? };
 
 const basePath = getArgument('customUiPath') || path.join(__dirname, '/default-ui');
 
