@@ -1,8 +1,13 @@
 node_modules/
 
 src/
+
+default-ui/
+docs/
 media/
-test/
+
+.vscode/
+
 gulpfile.js
 tsconfig.json
 tslint.json

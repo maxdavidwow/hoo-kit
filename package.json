@@ -1,8 +1,6 @@
 {
 	"name": "hoo-kit",
-	"author": {
-		"name": "max david"
-	},
+	"author": "wow-kit",
 	"publishConfig": {
 		"registry": "https://npm.pkg.github.com/"
 	},
