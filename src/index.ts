@@ -7,7 +7,7 @@ import { hookOntoProcessExit, mainProcess, MainProcessEvents } from './main-proc
 export * from './types';
 export { addCustomEventsModule } from './event-system/custom-events';
 
-function init() {
+export default function init() {
 	hookOntoProcessExit();
 	if (!loadConfig()) {
 		mainProcess.emit(MainProcessEvents.Close);
@@ -18,4 +18,7 @@ function init() {
 	setupUiServer();
 }
 
-init();
+// if run from cli start up immediatlely
+if (require.main === module) {
+	init();
+}

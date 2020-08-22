@@ -12,7 +12,7 @@ export function hookOntoProcessExit() {
 	};
 
 	// we don't need this event yet since it will be called only
-	// after node finished when node event loop is done wich menas
+	// after node finished when node event loop is done which menas
 	// we also do
 	// process.on('exit', onExit);
 

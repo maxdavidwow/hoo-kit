@@ -1,7 +1,7 @@
 1. first argument is the path to the hookit.json, if omitted the working directory will be used
 
 options:
-	// flag wich indicates if the ui server will be run
+	// flag which indicates if the ui server will be run
 	// default: true
 	--runUiServer: true | false
 

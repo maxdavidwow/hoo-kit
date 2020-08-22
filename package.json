@@ -15,6 +15,7 @@
 		"run": "node dist/index.js --customUiPath D:/dev/hoo-kit/default-ui/dist/default-ui",
 		"build": "tsc"
 	},
+	"bin": "./dist/index.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/wow-kit/hoo-kit.git"

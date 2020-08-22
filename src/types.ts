@@ -6,7 +6,7 @@ export enum TaskRetriggerStrategy {
 export type EventDefinition = { event: string; args?: object };
 
 /**
- * hookit task wich is defined in the hookit.json config.
+ * hookit task which is defined in the hookit.json config.
  */
 export type HookitTask = {
 	/** the name of the task */
@@ -37,7 +37,7 @@ export type HookitTask = {
 };
 
 /**
- * hookit config wich is defined in the hookit.json file.
+ * hookit config which is defined in the hookit.json file.
  */
 export type HookitConfig = {
 	/** list of hookit task that will be loaded upon start */
@@ -53,7 +53,7 @@ export type HookitConfig = {
 export type HookCallback = (output?: object) => void;
 
 /**
- * hookit event wich can be defined in and exported from a node module.
+ * hookit event which can be defined in and exported from a node module.
  * 'args' refer to the arguments defined in the task json
  */
 export type HookitEvent = {
