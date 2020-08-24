@@ -34,26 +34,12 @@ $hoo-kit-theme: mat-light-theme(
 // that you are using.
 @include angular-material-theme($hoo-kit-theme);
 
-/* You can add global styles to this file, and also import other style files */
+// global styles
+@import './globals.scss';
 
-html {
-	font-family: Roboto, 'Helvetica Neue', sans-serif;
-
-	display: flex;
-	height: 100%;
-	width: 100%;
-}
-
-body {
-	display: flex;
-	width: 100%;
-	margin: 0;
-}
-
-$borderWidth: 1px;
-$borderColor: #c7c7c7;
 .border {
 	border: $borderWidth solid $borderColor;
+	border-radius: $borderRadius;
 }
 
 $sides: ('top', 'bottom', 'left', 'right');
@@ -63,7 +49,26 @@ $sides: ('top', 'bottom', 'left', 'right');
 	}
 }
 
-$primary-color: #27ae60;
+html {
+	font-family: Roboto, 'Helvetica Neue', sans-serif;
+
+	display: flex;
+	height: 100%;
+	width: 100%;
+
+	color: $font-color;
+}
+
+.mono-font {
+	font-family: 'Roboto Mono', monospace;
+}
+
+body {
+	display: flex;
+	width: 100%;
+	margin: 0;
+}
+
 .primary-color {
 	color: $primary-color;
 }
@@ -71,21 +76,36 @@ $primary-color: #27ae60;
 	background-color: $primary-color;
 }
 
+.primary-color-dark {
+	color: $primary-color-dark;
+}
+.primary-background-dark {
+	background-color: $primary-color-dark;
+}
+
 button {
+	@extend .border;
+
 	background-color: white;
-	border: 1px solid black;
 	outline: none;
 	cursor: pointer;
 	font-size: 12px;
 	text-transform: uppercase;
-	letter-spacing: 1px;
+	letter-spacing: 2px;
 
-	padding: 4px;
-	padding-right: 3px;
+	padding: 6px;
+	padding-right: 4px;
 	width: fit-content;
 
+	transition: color 0.2s, background-color 0.2s;
+
+	color: $primary-color;
+
+	&:hover {
+		background-color: transparentize($primary-color, 0.8);
+	}
+
 	&:active {
-		background-color: black;
-		color: white;
+		background-color: transparentize($primary-color, 0.4);
 	}
 }

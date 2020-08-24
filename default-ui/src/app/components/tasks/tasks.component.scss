@@ -1,6 +1,8 @@
+@import '../../../styles/globals.scss';
+
 :host {
 	display: flex;
-	margin: 20px auto;
+	margin: $spacing auto;
 }
 
 .tasks-container {
@@ -8,16 +10,70 @@
 		display: flex;
 		flex-direction: column;
 
-		padding: 20px;
-		margin-bottom: 20px;
+		padding: $spacing;
+		margin-bottom: $spacing;
+
+		min-width: 60vw;
 
 		&.selectable {
 			user-select: none;
+			text-align: center;
 			cursor: pointer;
 		}
 
 		> .name {
-			font-size: 18px;
+			font-size: 22px;
+		}
+
+		> *:not(:first-child) {
+			margin-top: $spacing;
+		}
+
+		> .command {
+			> div {
+				margin-top: $spacing / 4;
+				padding: $spacing / 2;
+
+				color: lighten($font-color, 20%);
+			}
+		}
+
+		> .sessions {
+			user-select: none;
+
+			> div {
+				display: flex;
+
+				> div {
+					display: flex;
+
+					margin: $spacing / 4;
+					padding: $spacing / 4;
+					padding-left: ($spacing / 4) + 3;
+
+					> div:first-child {
+						margin-top: 1px;
+						margin-bottom: -1px;
+					}
+
+					> .close {
+						cursor: pointer;
+
+						height: 18px;
+						width: 18px;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+
+						margin-left: $spacing / 4;
+
+						&:hover {
+							color: white;
+							background-color: $error-color;
+						}
+					}
+				}
+			}
 		}
 	}
 }

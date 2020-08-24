@@ -2,12 +2,27 @@
 	<div
 		*ngFor="let task of tasks | async"
 		class="border"
-		(click)="selectedTask = task.name"
-		[class.selectable]="selectedTask !== task.name"
+		(click)="selectedTask = task.task.name"
+		[class.selectable]="selectedTask !== task.task.name"
 	>
-		<span class="name primary-color">{{ task.name }}</span>
-		<ng-container *ngIf="selectedTask === task.name">
-			<button>EDIT</button>
+		<span class="name">{{ task.task.name }}</span>
+		<ng-container *ngIf="selectedTask === task.task.name">
+			<div class="command">
+				<span>Command:</span>
+				<div class="border mono-font">
+					{{ task.task.command }}
+				</div>
+			</div>
+			<div class="sessions">
+				<span>Sessions:</span>
+				<div>
+					<div *ngFor="let session of task.sessions; let i = index" class="border">
+						<div>{{ 'Session #' + i }}</div>
+						<div class="close border" (click)="terminateSession(i)">x</div>
+					</div>
+				</div>
+			</div>
+			<!-- <button>EDIT</button> -->
 		</ng-container>
 	</div>
 </div>

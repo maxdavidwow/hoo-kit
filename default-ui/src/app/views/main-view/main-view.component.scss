@@ -1,20 +1,5 @@
-@import '~@angular/material/theming';
-
 :host {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
-}
-
-.header {
-	display: flex;
-	height: 23px;
-	padding: 0 4px;
-
-	> span {
-		align-self: center;
-		margin: auto;
-		user-select: none;
-		cursor: default;
-	}
 }

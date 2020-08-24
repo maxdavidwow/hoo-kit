@@ -30,12 +30,16 @@ function readTasks() {
 	}
 }
 
+type Session = { id: UUID };
+
 /**
  * Resembles the instance of an initialized task
  */
 export class TaskInstance {
 	startHooks: UUID[] = [];
 	stopHooks: UUID[] = [];
+
+	sessions: Session[] = [null, null, null];
 
 	constructor(public task: HookitTask) {
 		// bind these function so we only have 2 function pointers

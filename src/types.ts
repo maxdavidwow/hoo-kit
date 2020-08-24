@@ -3,6 +3,12 @@ export enum TaskRetriggerStrategy {
 	Add = 'add'
 }
 
+export enum StopStrategy {
+	All = 'all',
+	Oldest = 'oldest',
+	Newest = 'newest'
+}
+
 export type EventDefinition = { event: string; args?: object };
 
 /**
@@ -18,12 +24,20 @@ export type HookitTask = {
 	/** events that stop the execution of the command */
 	stopEvents?: EventDefinition[];
 
-	/** the stragey to use if the startEvent triggers again after the task wa already started
+	/** the stratgey to use if a startEvent triggers again after the task wa already started
 	 * 'restart' stops the execution of the task and starts it again
 	 * 'add' starts a new instance of the task
 	 * default: 'restart'
 	 */
 	retriggerStrategy?: TaskRetriggerStrategy;
+
+	/** the stratgey to use if a stopEvent triggers when multiple sessions of the command are running
+	 * 'all' stops the execution of all running sessions
+	 * 'oldest' stops the execution of the oldest session
+	 * 'newest' stops the execution of the newest session
+	 * default: 'all'
+	 */
+	stopStrategy?: StopStrategy;
 
 	/**
 	 * command that will be run in a shell
