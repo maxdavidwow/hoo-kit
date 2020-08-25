@@ -12,7 +12,7 @@ hookit.json
 gulpfile.js
 tsconfig.json
 tslint.json
-dist/test
+
 .prettierrc
 .gitignore
 .editorconfig
