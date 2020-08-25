@@ -6,7 +6,7 @@ hoo-kit provides a Task-System which handles shell execution based on events.<br
 ## Get Started
 Install:
 <br/>
-`npm install hoo-kit`
+`npm install @wow-kit/hoo-kit`
 <br/>
 <br/>
 Run:
