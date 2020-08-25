@@ -18,6 +18,12 @@ export type HookitTask = {
 	/** the name of the task */
 	name: string;
 
+	/**
+	 * Flag if the task should be initialized
+	 * default: true
+	 */
+	active: boolean;
+
 	/** events that trigger the execution of the command */
 	startEvents: EventDefinition[];
 

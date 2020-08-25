@@ -63,7 +63,9 @@ export const taskInstances = new Map<string, TaskInstance>();
 
 function initAllTasks() {
 	tasks.forEach((task) => {
-		initTask(task);
+		if (task.active) {
+			initTask(task);
+		}
 	});
 }
 
