@@ -1,4 +1,4 @@
-import { HookitTask, UUID } from '../types';
+import { HookitTask, UUID, TaskRetriggerStrategy, StopStrategy } from '../types';
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
@@ -24,9 +24,15 @@ function cleanUpTasks() {
 
 export const tasks = new Map<string, HookitTask>();
 
+const taskDefaults = {
+	active: true,
+	retriggerStrategy: TaskRetriggerStrategy.Restart,
+	stopStrategy: StopStrategy.All,
+	hideTerminal: false
+};
 function readTasks() {
 	for (const task of getConfig().tasks) {
-		tasks.set(task.name, task);
+		tasks.set(task.name, { ...taskDefaults, ...task });
 	}
 }
 
@@ -57,6 +63,11 @@ export class TaskInstance {
 	stop() {
 		// stop execution of the terminal/child_process
 		console.log('Stop task: ' + this.task.name);
+	}
+
+	terminateSessionByIndex(index: number) {
+		this.sessions.splice(index, 1);
+		// TODO: implement
 	}
 }
 export const taskInstances = new Map<string, TaskInstance>();

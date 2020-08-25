@@ -2,23 +2,30 @@
 	<div
 		*ngFor="let task of tasks | async"
 		class="border"
-		(click)="selectedTask = task.task.name"
-		[class.selectable]="selectedTask !== task.task.name"
+		(click)="selectedTask = task.name"
+		[class.selectable]="selectedTask !== task.name"
 	>
-		<span class="name">{{ task.task.name }}</span>
-		<ng-container *ngIf="selectedTask === task.task.name">
+		<span class="name">{{ task.name }}</span>
+		<ng-container *ngIf="selectedTask === task.name">
 			<div class="command">
 				<span>Command:</span>
-				<div class="border mono-font">
-					{{ task.task.command }}
+				<div *ngIf="{ edit: false } as edit" class="border mono-font">
+					<ng-container *ngIf="!edit.edit">
+						<span>{{ task.command }}</span>
+						<button mat-icon-button color="primary" aria-label="Example icon button with a home icon">
+							<mat-icon>home</mat-icon>
+						</button>
+					</ng-container>
+
+					<input *ngIf="edit.edit" [(ngModel)]="task.command" />
 				</div>
 			</div>
 			<div class="sessions">
 				<span>Sessions:</span>
 				<div>
-					<div *ngFor="let session of task.sessions; let i = index" class="border">
+					<div *ngFor="let session of instancesByName.get(task.name)?.sessions; let i = index" class="border">
 						<div>{{ 'Session #' + i }}</div>
-						<div class="close border" (click)="terminateSession(i)">x</div>
+						<div class="close border" (click)="terminateSession(task.name, i)">x</div>
 					</div>
 				</div>
 			</div>

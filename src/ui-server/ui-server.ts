@@ -8,7 +8,7 @@ import { mainProcess, MainProcessEvents } from '../main-process';
 import { tasks, taskInstances } from '../event-system/task-manager';
 import { defaultEvents } from '../event-system/event-manager';
 import { customEventModules } from '../event-system/custom-events';
-import { UUID } from '../types';
+import { UUID, HookitTask } from '../types';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
 // extending web socket type (really quirky types support for ws...)
@@ -186,10 +186,13 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 		}
 
 		case 'METHOD': {
-			if (api.methods[message.actionPath]) {
+			try {
+				if (!api.methods[message.actionPath]) {
+					throw 'Method not found.';
+				}
 				result = api.methods[message.actionPath](message);
-			} else {
-				error = 'Method Not found.';
+			} catch (ex) {
+				error = ex;
 			}
 			break;
 		}
@@ -245,8 +248,16 @@ const api = {
 
 	methods: {
 		saveTask: (message: WSMessage) => {
+			const params = message.payload as { taskName: string; task: HookitTask };
+			tasks.set(params.taskName, params.task);
 			notifyResourceChanged('tasks');
 			return message.payload;
+		},
+		terminateSession: (message: WSMessage) => {
+			const params = message.payload as { taskName: string; index: number };
+			taskInstances.get(params.taskName).terminateSessionByIndex(params.index);
+			notifyResourceChanged('taskInstances');
+			return true;
 		}
 	}
 };

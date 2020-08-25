@@ -1,6 +1,7 @@
 {
 	"tasks": [
 		{
+			"active": false,
 			"name": "TestTaskV1",
 			"startEvents": [
 				{

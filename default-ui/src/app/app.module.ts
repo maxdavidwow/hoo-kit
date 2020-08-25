@@ -10,9 +10,13 @@ import { EventsComponent } from './components/events/events.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainViewComponent } from './views/main-view/main-view.component';
 
+import { FormsModule } from '@angular/forms';
+
+import { MaterialModule } from './material.module';
+
 @NgModule({
 	declarations: [AppComponent, TasksComponent, TaskInstancesComponent, EventsComponent, MainViewComponent],
-	imports: [BrowserModule, HttpClientModule, AppRoutingModule, BrowserAnimationsModule],
+	imports: [BrowserModule, FormsModule, MaterialModule, HttpClientModule, AppRoutingModule, BrowserAnimationsModule],
 	providers: [],
 	bootstrap: [AppComponent]
 })

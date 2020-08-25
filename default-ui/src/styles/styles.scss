@@ -83,7 +83,7 @@ body {
 	background-color: $primary-color-dark;
 }
 
-button {
+button:not([mat-icon-button]) {
 	@extend .border;
 
 	background-color: white;
