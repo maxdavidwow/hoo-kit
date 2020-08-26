@@ -1,1 +1,25 @@
-<p>events works!</p>
+<div class="header" (click)="active = !active">
+	<span>
+		<ng-content></ng-content>
+	</span>
+	<mat-icon>{{ active ? 'expand_less' : 'expand_more' }}</mat-icon>
+</div>
+
+<ng-container *ngIf="active">
+	<div class="events">
+		<div *ngFor="let eventDef of events">
+			{{ eventDef.event }}
+		</div>
+	</div>
+
+	<mat-form-field>
+		<mat-label>Start-Events</mat-label>
+		<mat-select [(ngModel)]="selectedEvent">
+			<mat-optgroup *ngFor="let group of availableEvents" [label]="group">
+				<mat-option *ngFor="let event of eventsGroup.events" [value]="event">
+					{{ event }}
+				</mat-option>
+			</mat-optgroup>
+		</mat-select>
+	</mat-form-field>
+</ng-container>

@@ -1,3 +1,5 @@
+@import './globals.scss';
+
 // Custom Theming for Angular Material
 // For more information: https://material.angular.io/guide/theming
 @import '~@angular/material/theming';
@@ -11,8 +13,23 @@
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$hoo-kit-primary: mat-palette($mat-indigo);
-$hoo-kit-accent: mat-palette($mat-pink, A200, A100, A400);
+
+$hoo-kit-primary: mat-palette(
+	(
+		500: $primary-color,
+		contrast: (
+			500: white
+		)
+	)
+);
+$hoo-kit-accent: mat-palette(
+	(
+		500: $primary-color,
+		contrast: (
+			500: white
+		)
+	)
+);
 
 // The warn palette is optional (defaults to red).
 $hoo-kit-warn: mat-palette($mat-red);
@@ -35,7 +52,6 @@ $hoo-kit-theme: mat-light-theme(
 @include angular-material-theme($hoo-kit-theme);
 
 // global styles
-@import './globals.scss';
 
 .border {
 	border: $borderWidth solid $borderColor;
@@ -57,6 +73,7 @@ html {
 	width: 100%;
 
 	color: $font-color;
+	font-size: $font-size;
 }
 
 .mono-font {
@@ -108,4 +125,16 @@ button:not([mat-icon-button]) {
 	&:active {
 		background-color: transparentize($primary-color, 0.4);
 	}
+}
+
+// make mat icons smaller
+mat-icon {
+	font-size: 22px !important;
+	padding-left: 1px;
+	margin-top: -1px;
+}
+
+// remove mat form-field bottom padding
+.mat-form-field-wrapper {
+	margin-bottom: -1.25em;
 }

@@ -13,7 +13,7 @@
 		padding: $spacing;
 		margin-bottom: $spacing;
 
-		min-width: 60vw;
+		width: 60vw;
 
 		&.selectable {
 			user-select: none;
@@ -21,8 +21,36 @@
 			cursor: pointer;
 		}
 
-		> .name {
-			font-size: 22px;
+		> .header {
+			display: flex;
+			align-items: center;
+
+			> .status {
+				background-color: $error-color;
+				width: 1em;
+				height: 1em;
+				border-radius: 50%;
+
+				&.active {
+					background-color: $primary-color;
+
+					animation: status-ripple 4s linear infinite;
+
+					@keyframes status-ripple {
+						0% {
+							box-shadow: 0 0 0 0 rgba($primary-color, 0.8);
+						}
+						25% {
+							box-shadow: 0 0 0 8px rgba($primary-color, 0);
+						}
+					}
+				}
+			}
+
+			> .name {
+				font-size: 22px;
+				margin-right: auto;
+			}
 		}
 
 		> *:not(:first-child) {
@@ -31,10 +59,29 @@
 
 		> .command {
 			> div {
+				display: flex;
+
 				margin-top: $spacing / 4;
 				padding: $spacing / 2;
 
 				color: lighten($font-color, 20%);
+
+				> button {
+					margin-top: -10px;
+					margin-bottom: -10px;
+					margin-right: -10px;
+					margin-left: auto;
+				}
+
+				> input {
+					outline: none;
+					border-top: none;
+					border-left: none;
+					border-right: none;
+					width: 100%;
+					padding: 0;
+					font-size: 14px;
+				}
 			}
 		}
 
@@ -47,6 +94,7 @@
 
 				> div {
 					display: flex;
+					align-items: center;
 
 					margin: $spacing / 4;
 					padding: $spacing / 4;
@@ -60,8 +108,8 @@
 					> .close {
 						cursor: pointer;
 
-						height: 18px;
-						width: 18px;
+						height: 16px;
+						width: 16px;
 						display: flex;
 						justify-content: center;
 						align-items: center;
@@ -71,6 +119,12 @@
 						&:hover {
 							color: white;
 							background-color: $error-color;
+						}
+
+						> mat-icon {
+							font-size: 18px !important;
+							height: 18px !important;
+							width: 18px !important;
 						}
 					}
 				}

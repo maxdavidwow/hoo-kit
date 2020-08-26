@@ -217,6 +217,10 @@ function notifyResourceChanged(...resources: string[]) {
 	}
 }
 
+export type EventList = {
+	[namepsace: string]: string[];
+};
+
 const api = {
 	resources: {
 		tasks: () => {
@@ -234,13 +238,10 @@ const api = {
 			return entries;
 		},
 		events: () => {
-			const events = {
-				default: [],
-				custom: []
-			};
-			events.default = [...defaultEvents];
-			customEventModules.forEach((cem) => {
-				Object.keys(cem).forEach((eventName) => events.custom.push(eventName));
+			const events: EventList = {};
+			events.default = defaultEvents;
+			customEventModules.forEach((cem, moduleName) => {
+				Object.keys(cem).forEach((eventName) => events[moduleName].push(eventName));
 			});
 			return events;
 		}
@@ -251,7 +252,7 @@ const api = {
 			const params = message.payload as { taskName: string; task: HookitTask };
 			tasks.set(params.taskName, params.task);
 			notifyResourceChanged('tasks');
-			return message.payload;
+			return true;
 		},
 		terminateSession: (message: WSMessage) => {
 			const params = message.payload as { taskName: string; index: number };
