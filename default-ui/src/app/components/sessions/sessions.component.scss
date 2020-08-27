@@ -1,0 +1,55 @@
+@import '../../../styles/globals.scss';
+
+:host {
+	display: flex;
+}
+
+.sessions {
+	user-select: none;
+
+	> div {
+		display: flex;
+		margin-left: -($spacing / 4);
+
+		> mat-card {
+			display: flex;
+			align-items: center;
+
+			margin: $spacing / 4;
+			padding: $spacing / 4;
+			padding-left: ($spacing / 4) + 3;
+
+			> div:first-child {
+				margin-top: 1px;
+				margin-bottom: -1px;
+			}
+
+			> .close {
+				cursor: pointer;
+
+				height: 16px;
+				width: 16px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 0;
+
+				border-radius: 4px;
+
+				margin-left: $spacing / 4;
+
+				&:hover {
+					color: white;
+					background-color: $error-color;
+				}
+
+				> mat-icon {
+					font-size: 18px !important;
+					height: 18px !important;
+					width: 18px !important;
+					margin-left: -0.5px;
+				}
+			}
+		}
+	}
+}

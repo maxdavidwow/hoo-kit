@@ -3,8 +3,6 @@ import { ServerService } from 'src/app/services/server/server.service';
 import { TaskInstance } from '../../../../../src/event-system/task-manager';
 import { HookitTask, TaskRetriggerStrategy, StopStrategy } from '../../../../../src/types';
 import sync from 'css-animation-sync';
-import { map } from 'rxjs/operators';
-import { EventList } from '../../../../../src/ui-server/ui-server';
 
 new sync('status-ripple').start();
 
@@ -16,6 +14,7 @@ new sync('status-ripple').start();
 export class TasksComponent {
 	// tslint:disable-next-line: no-inferrable-types
 	selectedTask: string = 'TestTaskV2';
+	edit = true;
 
 	editTask: HookitTask;
 
@@ -39,7 +38,6 @@ export class TasksComponent {
 
 	saveTask(task: HookitTask) {
 		this.server.call('saveTask', { taskName: task.name, task });
-		this.tasksToUpdate[task.name] = true;
 	}
 
 	changeCommand(task: HookitTask, newCommand: string) {
@@ -54,9 +52,5 @@ export class TasksComponent {
 			delete this.tasksToUpdate[task.name];
 		}
 		return needsUpdate ? false : index;
-	}
-
-	terminateSession(taskName: string, index: number) {
-		this.server.call('terminateSession', { taskName, index });
 	}
 }

@@ -5,17 +5,17 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TasksComponent } from './components/tasks/tasks.component';
-import { TaskInstancesComponent } from './components/task-instances/task-instances.component';
 import { EventsComponent } from './components/events/events.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MainViewComponent } from './views/main-view/main-view.component';
 
 import { FormsModule } from '@angular/forms';
 
-import { MaterialModule } from './material.module';
+import { MaterialModule } from './modules/material.module';
+import { SessionsComponent } from './components/sessions/sessions.component';
 
 @NgModule({
-	declarations: [AppComponent, TasksComponent, TaskInstancesComponent, EventsComponent, MainViewComponent],
+	declarations: [AppComponent, TasksComponent, EventsComponent, MainViewComponent, SessionsComponent],
 	imports: [BrowserModule, FormsModule, MaterialModule, HttpClientModule, AppRoutingModule, BrowserAnimationsModule],
 	providers: [],
 	bootstrap: [AppComponent]

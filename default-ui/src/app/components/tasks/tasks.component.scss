@@ -6,129 +6,85 @@
 }
 
 .tasks-container {
-	> div {
+	> .task {
 		display: flex;
 		flex-direction: column;
 
-		padding: $spacing;
-		margin-bottom: $spacing;
-
 		width: 60vw;
 
-		&.selectable {
-			user-select: none;
-			text-align: center;
-			cursor: pointer;
-		}
+		::ng-deep > mat-expansion-panel-header > span.mat-content {
+			overflow: visible;
 
-		> .header {
-			display: flex;
-			align-items: center;
-
-			> .status {
-				background-color: $error-color;
-				width: 1em;
-				height: 1em;
-				border-radius: 50%;
-
-				&.active {
-					background-color: $primary-color;
-
-					animation: status-ripple 4s linear infinite;
-
-					@keyframes status-ripple {
-						0% {
-							box-shadow: 0 0 0 0 rgba($primary-color, 0.8);
-						}
-						25% {
-							box-shadow: 0 0 0 8px rgba($primary-color, 0);
-						}
-					}
-				}
-			}
-
-			> .name {
-				font-size: 22px;
-				margin-right: auto;
-			}
-		}
-
-		> *:not(:first-child) {
-			margin-top: $spacing;
-		}
-
-		> .command {
-			> div {
+			> mat-panel-title {
 				display: flex;
+				align-items: center;
 
-				margin-top: $spacing / 4;
-				padding: $spacing / 2;
+				> .status {
+					margin-right: $spacing / 2;
+					background-color: $error-color;
+					width: 1em;
+					height: 1em;
+					border-radius: 50%;
 
-				color: lighten($font-color, 20%);
+					&.active {
+						background-color: $primary-color;
 
-				> button {
-					margin-top: -10px;
-					margin-bottom: -10px;
-					margin-right: -10px;
-					margin-left: auto;
+						animation: status-ripple 4s linear infinite;
+
+						@keyframes status-ripple {
+							0% {
+								box-shadow: 0 0 0 0 rgba($primary-color, 0.8);
+							}
+							25% {
+								box-shadow: 0 0 0 8px rgba($primary-color, 0);
+							}
+						}
+					}
 				}
 
-				> input {
-					outline: none;
-					border-top: none;
-					border-left: none;
-					border-right: none;
-					width: 100%;
-					padding: 0;
-					font-size: 14px;
+				> .name {
+					font-size: 18px;
 				}
 			}
 		}
+	}
+}
 
-		> .sessions {
-			user-select: none;
+.task-content,
+.edit {
+	> *:not(:first-child) {
+		margin-top: $spacing;
+	}
+}
 
-			> div {
-				display: flex;
-				margin-left: -($spacing / 4);
+.no-level {
+	margin-top: $spacing / 2 !important;
+}
 
-				> div {
-					display: flex;
-					align-items: center;
+.command {
+	> mat-card {
+		display: flex;
 
-					margin: $spacing / 4;
-					padding: $spacing / 4;
-					padding-left: ($spacing / 4) + 3;
+		margin-top: $spacing / 4;
+		padding: $spacing / 2;
 
-					> div:first-child {
-						margin-top: 1px;
-						margin-bottom: -1px;
-					}
+		color: lighten($font-color, 20%);
 
-					> .close {
-						cursor: pointer;
+		> button {
+			margin-top: -10px;
+			margin-bottom: -10px;
+			margin-right: -10px;
+			margin-left: auto;
+		}
 
-						height: 16px;
-						width: 16px;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-
-						margin-left: $spacing / 4;
-
-						&:hover {
-							color: white;
-							background-color: $error-color;
-						}
-
-						> mat-icon {
-							font-size: 18px !important;
-							height: 18px !important;
-							width: 18px !important;
-						}
-					}
-				}
-			}
+		> input {
+			outline: none;
+			border-top: none;
+			border-left: none;
+			border-right: none;
+			width: 100%;
+			padding: 0;
+			font-size: 14px;
 		}
 	}
 }

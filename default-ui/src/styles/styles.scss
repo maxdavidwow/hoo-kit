@@ -138,3 +138,23 @@ mat-icon {
 .mat-form-field-wrapper {
 	margin-bottom: -1.25em;
 }
+
+// make mat-expansion panel header not selectable
+mat-expansion-panel-header {
+	user-select: none;
+}
+
+// remove shadow and padding
+mat-expansion-panel.no-level {
+	box-shadow: none !important;
+
+	> mat-expansion-panel-header {
+		background: none !important;
+		padding-left: 0;
+		padding-right: 2px;
+	}
+
+	> div > div {
+		padding: 2px;
+	}
+}

@@ -1,0 +1,14 @@
+<div class="sessions">
+	<span>Sessions:</span>
+	<div>
+		<mat-card *ngIf="sessions.length === 0">
+			<div>No sessions</div>
+		</mat-card>
+		<mat-card *ngFor="let session of sessions; let i = index">
+			<div>{{ 'Session #' + i }}</div>
+			<div class="close" (click)="terminateSession(taskName, i)">
+				<mat-icon>close</mat-icon>
+			</div>
+		</mat-card>
+	</div>
+</div>

@@ -9,9 +9,9 @@ import { EventDefinition } from '../../../../../src/types';
 	styleUrls: ['./events.component.scss']
 })
 export class EventsComponent {
-	@HostBinding() class = 'border';
-
 	active = true;
+
+	edit: EventDefinition = { event: 'none' };
 
 	selectedEvent: string;
 
@@ -26,7 +26,7 @@ export class EventsComponent {
 	}
 	@Output() eventsChange = new EventEmitter<EventDefinition[]>();
 
-	availableEvents: EventList = {};
+	availableEvents: { group: string; events: string[] }[] = [];
 	private allEvents: EventList = {};
 
 	constructor(private server: ServerService) {
@@ -60,6 +60,10 @@ export class EventsComponent {
 			}
 			sorted[group].push(eventName);
 		}
-		return sorted;
+		const sortedList = [];
+		Object.keys(sorted).forEach((group) => {
+			sortedList.push({ group, events: sorted[group] });
+		});
+		return sortedList;
 	}
 }

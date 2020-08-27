@@ -1,25 +1,38 @@
-<div class="header" (click)="active = !active">
-	<span>
-		<ng-content></ng-content>
-	</span>
-	<mat-icon>{{ active ? 'expand_less' : 'expand_more' }}</mat-icon>
-</div>
+<mat-expansion-panel [expanded]="active" (opened)="active = true" (afterCollapse)="active = false" [class.closed]="!active">
+	<mat-expansion-panel-header>
+		<mat-panel-title>
+			<ng-content></ng-content>
+		</mat-panel-title>
+	</mat-expansion-panel-header>
 
-<ng-container *ngIf="active">
-	<div class="events">
-		<div *ngFor="let eventDef of events">
-			{{ eventDef.event }}
+	<ng-container *ngIf="active">
+		<div class="events">
+			<div *ngFor="let eventDef of events">
+				<ng-container *ngIf="edit.event !== eventDef.event">
+					<div>{{ eventDef.event }}</div>
+					<button mat-icon-button (click)="edit.active = true">
+						<mat-icon>edit</mat-icon>
+					</button>
+				</ng-container>
+
+				<ng-container *ngIf="edit.event === eventDef.event">
+					<input class="border-bottom mono-font" [(ngModel)]="edit.args" />
+					<button mat-icon-button (click)="$event.stopPropagation()">
+						<mat-icon>check</mat-icon>
+					</button>
+				</ng-container>
+			</div>
 		</div>
-	</div>
 
-	<mat-form-field>
-		<mat-label>Start-Events</mat-label>
-		<mat-select [(ngModel)]="selectedEvent">
-			<mat-optgroup *ngFor="let group of availableEvents" [label]="group">
-				<mat-option *ngFor="let event of eventsGroup.events" [value]="event">
-					{{ event }}
-				</mat-option>
-			</mat-optgroup>
-		</mat-select>
-	</mat-form-field>
-</ng-container>
+		<mat-form-field>
+			<mat-label>Events</mat-label>
+			<mat-select [(ngModel)]="selectedEvent">
+				<mat-optgroup *ngFor="let group of availableEvents" [label]="group.group">
+					<mat-option *ngFor="let event of group.events" [value]="group.group + '/' + event">
+						{{ event }}
+					</mat-option>
+				</mat-optgroup>
+			</mat-select>
+		</mat-form-field>
+	</ng-container>
+</mat-expansion-panel>

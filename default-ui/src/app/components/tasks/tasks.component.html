@@ -1,81 +1,74 @@
-<div class="tasks-container">
-	<div
+<mat-accordion class="tasks-container">
+	<mat-expansion-panel
 		*ngFor="let task of tasks | async; trackBy: trackTasks"
-		class="border"
+		class="task"
+		[expanded]="selectedTask === task.name"
 		(click)="selectedTask = task.name"
-		[class.selectable]="selectedTask !== task.name"
 	>
-		<div class="header">
-			<span class="name">{{ task.name }}</span>
-			<div class="status" [class.active]="task.active"></div>
-		</div>
+		<mat-expansion-panel-header>
+			<mat-panel-title>
+				<div class="status" [class.active]="task.active"></div>
+				<span class="name">{{ task.name }}</span>
+			</mat-panel-title>
+		</mat-expansion-panel-header>
 
-		<ng-container *ngIf="selectedTask === task.name">
+		<div class="task-content">
 			<div class="active">
 				<mat-checkbox [(ngModel)]="task.active">Active</mat-checkbox>
 			</div>
 
-			<ng-container *ngIf="instancesByName?.get(task.name)?.sessions || [] as sessions">
-				<div *ngIf="task.active && sessions.length > 0" class="sessions">
-					<span>Sessions:</span>
-					<div>
-						<div *ngFor="let session of sessions; let i = index" class="border">
-							<div>{{ 'Session #' + i }}</div>
-							<div class="close border" (click)="terminateSession(task.name, i)">
-								<mat-icon>close</mat-icon>
-							</div>
-						</div>
+			<hookit-sessions [taskName]="task.name" [sessions]="instancesByName?.get(task.name)?.sessions || []"></hookit-sessions>
+
+			<mat-expansion-panel class="no-level" [expanded]="edit" (opened)="edit = true" (afterCollapse)="edit = false">
+				<mat-expansion-panel-header>
+					<mat-panel-title>Edit</mat-panel-title>
+				</mat-expansion-panel-header>
+
+				<div *ngIf="edit" class="edit">
+					<hookit-events [(events)]="task.startEvents">Start Events</hookit-events>
+					<hookit-events [(events)]="task.stopEvents">Stop Events</hookit-events>
+
+					<div class="command">
+						<span>Command:</span>
+						<mat-card *ngIf="{ active: false, value: task.command } as edit" class="mono-font">
+							<ng-container *ngIf="!edit.active">
+								<div>{{ task.command }}</div>
+								<button mat-icon-button (click)="edit.active = true">
+									<mat-icon>edit</mat-icon>
+								</button>
+							</ng-container>
+
+							<ng-container *ngIf="edit.active">
+								<input *ngIf="edit.active" class="border-bottom mono-font" [(ngModel)]="edit.value" />
+								<button
+									mat-icon-button
+									(click)="$event.stopPropagation() || changeCommand(task, edit.value) || (edit.active = false)"
+								>
+									<mat-icon>check</mat-icon>
+								</button>
+							</ng-container>
+						</mat-card>
+					</div>
+
+					<div class="retrigger-strategy">
+						<mat-form-field>
+							<mat-label>Task-Retrigger-Strategy</mat-label>
+							<mat-select [(ngModel)]="task.retriggerStrategy">
+								<mat-option *ngFor="let strategy of retriggerStrategies" [value]="strategy">{{ strategy }}</mat-option>
+							</mat-select>
+						</mat-form-field>
+					</div>
+
+					<div class="stop-strategy">
+						<mat-form-field>
+							<mat-label>Stop-Strategy</mat-label>
+							<mat-select [(ngModel)]="task.stopStrategy">
+								<mat-option *ngFor="let strategy of stopStrategies" [value]="strategy">{{ strategy }}</mat-option>
+							</mat-select>
+						</mat-form-field>
 					</div>
 				</div>
-			</ng-container>
-
-			<div class="start-events">
-				<hookit-events [(events)]="task.startEvents">Start Events</hookit-events>
-			</div>
-
-			<div class="stop-events">
-				<hookit-events [(events)]="task.stopEvents">Stop Events</hookit-events>
-			</div>
-
-			<div class="command">
-				<span>Command:</span>
-				<div *ngIf="{ active: false, value: task.command } as edit" class="border mono-font">
-					<ng-container *ngIf="!edit.active">
-						<div>{{ task.command }}</div>
-						<button mat-icon-button (click)="edit.active = true">
-							<mat-icon>edit</mat-icon>
-						</button>
-					</ng-container>
-
-					<ng-container *ngIf="edit.active">
-						<input *ngIf="edit.active" class="border-bottom mono-font" [(ngModel)]="edit.value" />
-						<button
-							mat-icon-button
-							(click)="$event.stopPropagation() || changeCommand(task, edit.value) || (edit.active = false)"
-						>
-							<mat-icon>check</mat-icon>
-						</button>
-					</ng-container>
-				</div>
-			</div>
-
-			<div class="retrigger-strategy">
-				<mat-form-field>
-					<mat-label>Task-Retrigger-Strategy</mat-label>
-					<mat-select [(ngModel)]="task.retriggerStrategy">
-						<mat-option *ngFor="let strategy of retriggerStrategies" [value]="strategy">{{ strategy }}</mat-option>
-					</mat-select>
-				</mat-form-field>
-			</div>
-
-			<div class="stop-strategy">
-				<mat-form-field>
-					<mat-label>Stop-Strategy</mat-label>
-					<mat-select [(ngModel)]="task.stopStrategy">
-						<mat-option *ngFor="let strategy of stopStrategies" [value]="strategy">{{ strategy }}</mat-option>
-					</mat-select>
-				</mat-form-field>
-			</div>
-		</ng-container>
-	</div>
-</div>
+			</mat-expansion-panel>
+		</div>
+	</mat-expansion-panel>
+</mat-accordion>
