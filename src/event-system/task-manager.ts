@@ -2,6 +2,10 @@ import { HookitTask, UUID, TaskRetriggerStrategy, StopStrategy } from '../types'
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
+import { spawn, ChildProcessByStdio, exec, ChildProcess, fork, execFile } from 'child_process';
+import internal = require('stream');
+import { v4 as uuid } from 'uuid';
+import { notifyResourceChanged } from '../ui-server/ui-server';
 
 export default function () {
 	readTasks();
@@ -36,8 +40,6 @@ function readTasks() {
 	}
 }
 
-type Session = { id: UUID };
-
 /**
  * Resembles the instance of an initialized task
  */
@@ -45,7 +47,7 @@ export class TaskInstance {
 	startHooks: UUID[] = [];
 	stopHooks: UUID[] = [];
 
-	sessions: Session[] = [null, null, null];
+	sessions: number[] = [];
 
 	constructor(public task: HookitTask) {
 		// bind these function so we only have 2 function pointers
@@ -54,20 +56,51 @@ export class TaskInstance {
 		this.stop = this.stop.bind(this);
 	}
 
-	runCommand(output?: object) {
+	runCommand(output?: string) {
 		// output is the optional object passed if the event returns something
-		console.log('Run task: ' + this.task.name);
-		// start execution of terminal/child_process
+		const command = this.task.command.replace('${output}', output || '');
+
+		// TODO
+		// ubuntu like: gnome-terminal -- bash -c 'echo "Test"; bash' && echo $!
+		// mac: TODO
+		const process = exec(`wmic process call create "cmd.exe /K ${command}"`, {
+			encoding: 'utf-8'
+		});
+
+		process.stdout.on('data', (data: string) => {
+			console.log('data', data);
+			if (data.includes('ProcessId')) {
+				const pid = data.substring(data.indexOf('ProcessId') + 12, data.indexOf(';'));
+				this.sessions.push(Number(pid));
+				notifyResourceChanged('taskInstances');
+			}
+		});
 	}
 
 	stop() {
-		// stop execution of the terminal/child_process
-		console.log('Stop task: ' + this.task.name);
+		switch (this.task.stopStrategy) {
+			case StopStrategy.All: {
+				this.sessions.forEach(() => this.terminateSessionByIndex(0));
+				break;
+			}
+			case StopStrategy.Newest: {
+				this.terminateSessionByIndex(this.sessions.length - 1);
+				break;
+			}
+			case StopStrategy.Oldest: {
+				this.terminateSessionByIndex(0);
+				break;
+			}
+		}
 	}
 
 	terminateSessionByIndex(index: number) {
-		this.sessions.splice(index, 1);
-		// TODO: implement
+		const sessionToTerminate = this.sessions.splice(index, 1)[0];
+
+		// TODO
+		// ubuntu like: kill pid
+		// mac: TODO
+		exec('taskkill /f /t /pid ' + sessionToTerminate);
 	}
 }
 export const taskInstances = new Map<string, TaskInstance>();

@@ -25,8 +25,7 @@ export function hookOntoProcessExit() {
 
 	// catches uncaught exceptions
 	process.on('uncaughtException', (error) => {
-		onExit();
-		// log uncaught error
 		console.error(error);
+		onExit();
 	});
 }

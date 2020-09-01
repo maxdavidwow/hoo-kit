@@ -11,7 +11,7 @@ import { customEventModules } from '../event-system/custom-events';
 import { UUID, HookitTask } from '../types';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
 
-// extending web socket type (really quirky types support for ws...)
+// extending web socket type (really quirky namespace for ws...)
 type WebSocket = WS & { isAlive: boolean };
 
 export type WSMessage = { id: UUID; action: string; actionPath?: string; error?: string; payload? };
@@ -20,7 +20,7 @@ const basePath = getArgument('customUiPath') || path.join(__dirname, '/default-u
 
 export default function () {
 	const runServerFlag = getArgument('runUiServer');
-	if (runServerFlag !== undefined && !runServerFlag) {
+	if (runServerFlag !== undefined && runServerFlag !== 'true') {
 		// don't start server
 		return;
 	}
@@ -207,7 +207,7 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 }
 
 const resourceStreams = new Map<string, { message: WSMessage; socket: WebSocket }[]>();
-function notifyResourceChanged(...resources: string[]) {
+export function notifyResourceChanged(...resources: string[]) {
 	// for every resource and every streaming socket
 	for (const resource of resources) {
 		const streams = resourceStreams.get(resource);

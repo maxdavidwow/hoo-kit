@@ -10,7 +10,7 @@
 			"name": "Launch Program",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\dist\\index.js",
-			"args": ["--customUiPath", "D:/dev/hoo-kit/default-ui/dist/default-ui"],
+			"args": ["--customUiPath", "D:/dev/hoo-kit/default-ui/dist/default-ui", "--runUiServer", "false"],
 			"preLaunchTask": "tsc -inlineSourcemap",
 			"console": "integratedTerminal",
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"]

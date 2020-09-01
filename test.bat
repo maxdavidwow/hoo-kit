@@ -1,0 +1,3 @@
+START cmd.exe /K;
+TASKLIST ;
+PAUSE;

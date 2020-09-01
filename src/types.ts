@@ -70,7 +70,7 @@ export type HookitConfig = {
 	};
 };
 
-export type HookCallback = (output?: object) => void;
+export type HookCallback = (output?: string) => void;
 
 /**
  * hoo-kit event which can be defined in and exported from a node module.
