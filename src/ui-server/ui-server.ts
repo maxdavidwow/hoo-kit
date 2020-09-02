@@ -211,8 +211,10 @@ export function notifyResourceChanged(...resources: string[]) {
 	// for every resource and every streaming socket
 	for (const resource of resources) {
 		const streams = resourceStreams.get(resource);
-		for (const stream of streams) {
-			setImmediate(handleApiCall.bind(this, stream.message, stream.socket));
+		if (streams) {
+			for (const stream of streams) {
+				setImmediate(handleApiCall.bind(this, stream.message, stream.socket));
+			}
 		}
 	}
 }

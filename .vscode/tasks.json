@@ -5,6 +5,11 @@
 			"label": "tsc -inlineSourcemap",
 			"type": "shell",
 			"command": "tsc --inlineSourceMap"
+		},
+		{
+			"label": "kill cmd",
+			"type": "shell",
+			"command": "taskkill /im cmd.exe"
 		}
 	]
 }

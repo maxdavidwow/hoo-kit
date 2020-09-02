@@ -12,6 +12,7 @@
 			"program": "${workspaceFolder}\\dist\\index.js",
 			"args": ["--customUiPath", "D:/dev/hoo-kit/default-ui/dist/default-ui", "--runUiServer", "false"],
 			"preLaunchTask": "tsc -inlineSourcemap",
+			"postDebugTask": "kill cmd",
 			"console": "integratedTerminal",
 			"outFiles": ["${workspaceFolder}/dist/**/*.js"]
 		}

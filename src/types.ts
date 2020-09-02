@@ -46,9 +46,9 @@ export type HookitTask = {
 	stopStrategy?: StopStrategy;
 
 	/**
-	 * command that will be run in a shell
+	 * commands that will be run in a terminal
 	 */
-	command: string;
+	commands: string[];
 
 	/** should the task run in an invisible shell
 	 * default: false

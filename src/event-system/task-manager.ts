@@ -6,6 +6,7 @@ import { spawn, ChildProcessByStdio, exec, ChildProcess, fork, execFile } from '
 import internal = require('stream');
 import { v4 as uuid } from 'uuid';
 import { notifyResourceChanged } from '../ui-server/ui-server';
+import runCommandsInTerminal from '../externalTerminal/terminal';
 
 export default function () {
 	readTasks();
@@ -58,23 +59,17 @@ export class TaskInstance {
 
 	runCommand(output?: string) {
 		// output is the optional object passed if the event returns something
-		const command = this.task.command.replace('${output}', output || '');
+		// const command = this.task.commands.replace('${output}', output || '');
 
-		// TODO
-		// ubuntu like: gnome-terminal -- bash -c 'echo "Test"; bash' && echo $!
-		// mac: TODO
-		const process = exec(`wmic process call create "cmd.exe /K ${command}"`, {
-			encoding: 'utf-8'
-		});
+		runCommandsInTerminal(this.task.name, this.task.commands);
 
-		process.stdout.on('data', (data: string) => {
-			console.log('data', data);
-			if (data.includes('ProcessId')) {
-				const pid = data.substring(data.indexOf('ProcessId') + 12, data.indexOf(';'));
-				this.sessions.push(Number(pid));
-				notifyResourceChanged('taskInstances');
-			}
-		});
+		// process.stdout.on('data', (data: string) => {
+		// 	if (data.includes('ProcessId')) {
+		// 		const pid = data.substring(data.indexOf('ProcessId') + 12, data.indexOf(';'));
+		// 		this.sessions.push(Number(pid));
+		// 		notifyResourceChanged('taskInstances');
+		// 	}
+		// });
 	}
 
 	stop() {
