@@ -5,10 +5,6 @@
 			"startEvents": [
 				{
 					"event": "general/start"
-				},
-				{
-					"event": "time/intervall",
-					"args": { "interval": 5000 }
 				}
 			],
 			"stopEvents": [
@@ -16,7 +12,7 @@
 					"event": "general/end"
 				}
 			],
-			"command": ["echo", "'Test i is o'", "&", "PAUSE"]
+			"command": "echo 'Test i is o' & PAUSE"
 		},
 		{
 			"name": "TestTaskV2",

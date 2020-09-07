@@ -17,7 +17,7 @@ export function requireCustomEventModules() {
 				customEventModules.set(customEventModuleName, customEventModule);
 			}
 		}
-		console.log(`Added ${customEventModules.size} custom event module(s).`);
+		// console.log(`Added ${customEventModules.size} custom event module(s).`);
 	} catch (ex) {
 		console.log('Could not read custom event modules: ' + ex);
 	}

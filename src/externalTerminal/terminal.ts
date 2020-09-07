@@ -3,35 +3,43 @@ import { env } from 'process';
 import { exists } from 'fs';
 import { platform } from 'os';
 
-export class WindowsExternalTerminalService {
+export abstract class Terminal {
+	pid: string;
+
+	constructor(pid: string) {
+		this.pid = pid;
+	}
+
+	public abstract terminate(): Promise<boolean>;
+}
+
+export class WindowsExternalTerminal extends Terminal {
 	private static readonly CMD = 'cmd.exe';
 
 	private static _DEFAULT_TERMINAL_WINDOWS: string;
 
 	public static getDefaultTerminalWindows(): string {
-		if (!WindowsExternalTerminalService._DEFAULT_TERMINAL_WINDOWS) {
+		if (!WindowsExternalTerminal._DEFAULT_TERMINAL_WINDOWS) {
 			const isWoW64 = !!process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432');
-			WindowsExternalTerminalService._DEFAULT_TERMINAL_WINDOWS = `${process.env.windir ? process.env.windir : 'C:\\Windows'}\\${
+			WindowsExternalTerminal._DEFAULT_TERMINAL_WINDOWS = `${process.env.windir ? process.env.windir : 'C:\\Windows'}\\${
 				isWoW64 ? 'Sysnative' : 'System32'
 			}\\cmd.exe`;
 		}
-		return WindowsExternalTerminalService._DEFAULT_TERMINAL_WINDOWS;
+		return WindowsExternalTerminal._DEFAULT_TERMINAL_WINDOWS;
 	}
 
-	public static runInTerminal(title: string, args: string[], dir?: string, envVars?): Promise<number | undefined> {
-		const exec = WindowsExternalTerminalService.getDefaultTerminalWindows();
+	public static runInTerminal(title: string, command: string, dir?: string, envVars?) {
+		const exec = WindowsExternalTerminal.getDefaultTerminalWindows();
 
-		return new Promise<number | undefined>((resolve, reject) => {
-			const command = `""${args.join('" "')}" & pause"`; // use '|' to only pause on non-zero exit code
-
-			const cmdArgs = ['/c', 'start', title, '/wait', exec, '/c', command];
+		return new Promise<WindowsExternalTerminal>((resolve, reject) => {
+			const cmdArgs = ['/c', 'start', `"${title}"`, '/wait', exec, '/c', `"${command}"`];
 
 			// delete environment variables that have a null value
 			Object.keys(env)
 				.filter((v) => env[v] === null)
 				.forEach((key) => delete env[key]);
 
-			const cmd = cp.spawn(WindowsExternalTerminalService.CMD, cmdArgs, {
+			const cmd = cp.spawn(WindowsExternalTerminal.CMD, cmdArgs, {
 				cwd: dir,
 				env: { ...process.env, ...envVars },
 				windowsVerbatimArguments: true,
@@ -41,29 +49,69 @@ export class WindowsExternalTerminalService {
 				reject(improveError(err));
 			});
 
-			resolve(undefined);
+			setTimeout(async () => {
+				try {
+					const pid = await WindowsExternalTerminal.getPidForName(title);
+					resolve(new WindowsExternalTerminal(pid));
+				} catch (err) {
+					reject(err);
+				}
+			}, 200);
+		});
+	}
+
+	public static getPidForName(name: string) {
+		return new Promise<string>((res, rej) => {
+			const tasklist = cp.spawn('tasklist', ['/v', '/fi', '"ImageName eq cmd.exe"', '/fo', 'csv', '/nh'], {
+				shell: true,
+				stdio: ['ignore', 'pipe', 'ignore']
+			});
+			tasklist.stdout.setEncoding('utf-8');
+			let tasklistOutput = '';
+			tasklist.stdout.on('data', (chunk: string) => {
+				tasklistOutput += chunk;
+				let nameIndex = chunk.indexOf(name);
+				if (nameIndex > -1) {
+					nameIndex = tasklistOutput.indexOf(name);
+					// found process
+					let taskblock = tasklistOutput.substring(nameIndex - 400 || 0, nameIndex);
+					// get last csv line
+					taskblock = taskblock.substring(taskblock.lastIndexOf('"cmd.exe",') + 10);
+					const pid = taskblock.substring(taskblock.indexOf('"') + 1, taskblock.indexOf(',') - 1);
+					// end tasklist
+					tasklist.kill();
+					res(pid);
+				}
+			});
+			tasklist.on('close', () => {
+				rej(new Error('No PID found.'));
+			});
+		});
+	}
+
+	public terminate() {
+		return new Promise<boolean>((res) => {
+			cp.spawn('taskkill', ['/f', '/t', '/pid', this.pid], {
+				shell: true,
+				stdio: 'ignore'
+			}).on('close', res.bind(this, true));
 		});
 	}
 }
 
-export class MacExternalTerminalService {
+export class MacExternalTerminal extends Terminal {
 	public static DEFAULT_TERMINAL_OSX = 'Terminal.app';
 
 	private static readonly OSASCRIPT = '/usr/bin/osascript'; // osascript is the AppleScript interpreter on OS X
 
-	public static runInTerminal(title: string, args: string[], dir?: string, envVars?): Promise<number | undefined> {
-		return new Promise<number | undefined>((resolve, reject) => {
+	public static runInTerminal(title: string, command: string, dir?: string, envVars?) {
+		return new Promise<MacExternalTerminal>((resolve, reject) => {
 			// On OS X we launch an AppleScript that creates (or reuses) a Terminal window
 			// and then launches the program inside that window.
 
 			const scriptpath = __dirname + '\\TerminalHelper.scpt';
 
-			const osaArgs = [scriptpath, '-t', title, '-w', dir];
-
-			for (const a of args) {
-				osaArgs.push('-a');
-				osaArgs.push(a);
-			}
+			const osaArgs = [scriptpath, '-t', title, '-w', dir, command];
 
 			if (envVars) {
 				// tslint:disable-next-line: forin
@@ -80,7 +128,7 @@ export class MacExternalTerminalService {
 			}
 
 			let stderr = '';
-			const osa = cp.spawn(MacExternalTerminalService.OSASCRIPT, osaArgs);
+			const osa = cp.spawn(MacExternalTerminal.OSASCRIPT, osaArgs);
 			osa.on('error', (err) => {
 				reject(improveError(err));
 			});
@@ -90,7 +138,7 @@ export class MacExternalTerminalService {
 			osa.on('exit', (code: number) => {
 				if (code === 0) {
 					// OK
-					resolve(undefined);
+					resolve(new MacExternalTerminal(''));
 				} else {
 					if (stderr) {
 						const lines = stderr.split('\n', 1);
@@ -102,14 +150,20 @@ export class MacExternalTerminalService {
 			});
 		});
 	}
+
+	public terminate() {
+		return new Promise<boolean>((res, rej) => {
+			rej(new Error('Method not implemented.'));
+		});
+	}
 }
 
-export class LinuxExternalTerminalService {
+export class LinuxExternalTerminal extends Terminal {
 	private static _DEFAULT_TERMINAL_LINUX_READY: Promise<string>;
 
 	public static async getDefaultTerminalLinuxReady(): Promise<string> {
-		if (!LinuxExternalTerminalService._DEFAULT_TERMINAL_LINUX_READY) {
-			LinuxExternalTerminalService._DEFAULT_TERMINAL_LINUX_READY = new Promise(async (r) => {
+		if (!LinuxExternalTerminal._DEFAULT_TERMINAL_LINUX_READY) {
+			LinuxExternalTerminal._DEFAULT_TERMINAL_LINUX_READY = new Promise(async (r) => {
 				if (env.isLinux) {
 					exists('/etc/debian_version', (isDebian) => {
 						if (isDebian) {
@@ -131,15 +185,15 @@ export class LinuxExternalTerminalService {
 				}
 			});
 		}
-		return LinuxExternalTerminalService._DEFAULT_TERMINAL_LINUX_READY;
+		return LinuxExternalTerminal._DEFAULT_TERMINAL_LINUX_READY;
 	}
 
 	private static readonly WAIT_MESSAGE = 'Press any key to continue...';
 
-	public static runInTerminal(title: string, args: string[], dir?: string, envVars?): Promise<number | undefined> {
-		const execPromise = LinuxExternalTerminalService.getDefaultTerminalLinuxReady();
+	public static runInTerminal(title: string, command: string, dir?: string, envVars?) {
+		const execPromise = LinuxExternalTerminal.getDefaultTerminalLinuxReady();
 
-		return new Promise<number | undefined>((resolve, reject) => {
+		return new Promise<LinuxExternalTerminal>((resolve, reject) => {
 			const termArgs: string[] = [];
 			// termArgs.push('--title');
 			// termArgs.push(`"${TERMINAL_TITLE}"`);
@@ -152,7 +206,7 @@ export class LinuxExternalTerminalService {
 				termArgs.push('bash');
 				termArgs.push('-c');
 
-				const bashCommand = `${quote(args)}; echo; read -p "${LinuxExternalTerminalService.WAIT_MESSAGE}" -n1;`;
+				const bashCommand = `${command}; echo; read -p "${LinuxExternalTerminal.WAIT_MESSAGE}" -n1;`;
 				termArgs.push(`''${bashCommand}''`); // wrapping argument in two sets of ' because node is so "friendly" that it removes one set...
 
 				// delete environment variables that have a null value
@@ -176,7 +230,7 @@ export class LinuxExternalTerminalService {
 				cmd.on('exit', (code: number) => {
 					if (code === 0) {
 						// OK
-						resolve(undefined);
+						resolve(new LinuxExternalTerminal(''));
 					} else {
 						if (stderr) {
 							const lines = stderr.split('\n', 1);
@@ -187,6 +241,12 @@ export class LinuxExternalTerminalService {
 					}
 				});
 			});
+		});
+	}
+
+	public terminate() {
+		return new Promise<boolean>((res, rej) => {
+			rej(new Error('Method not implemented.'));
 		});
 	}
 }
@@ -219,16 +279,13 @@ function quote(args: string[]): string {
 	return r;
 }
 
-export default async function runCommandsInTerminal(title: string, commands: string[], dir?: string, envVars?) {
+export default async function runCommandInTerminal(title: string, command: string, dir?: string, envVars?): Promise<Terminal> {
 	switch (platform()) {
 		case 'win32':
-			return WindowsExternalTerminalService.runInTerminal(title, commands, dir, envVars);
-			break;
+			return WindowsExternalTerminal.runInTerminal(title, command, dir, envVars);
 		case 'darwin':
-			return MacExternalTerminalService.runInTerminal(title, commands, dir, envVars);
-			break;
+			return MacExternalTerminal.runInTerminal(title, command, dir, envVars);
 		default:
-			return LinuxExternalTerminalService.runInTerminal(title, commands, dir, envVars);
-			break;
+			return LinuxExternalTerminal.runInTerminal(title, command, dir, envVars);
 	}
 }

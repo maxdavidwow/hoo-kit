@@ -48,7 +48,7 @@ export type HookitTask = {
 	/**
 	 * commands that will be run in a terminal
 	 */
-	commands: string[];
+	command: string;
 
 	/** should the task run in an invisible shell
 	 * default: false
@@ -94,3 +94,5 @@ export type HookitEvent = {
 };
 
 export type UUID = string;
+
+export type Type<T> = new (...args: any[]) => T;

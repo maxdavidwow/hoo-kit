@@ -6,7 +6,7 @@ import { spawn, ChildProcessByStdio, exec, ChildProcess, fork, execFile } from '
 import internal = require('stream');
 import { v4 as uuid } from 'uuid';
 import { notifyResourceChanged } from '../ui-server/ui-server';
-import runCommandsInTerminal from '../externalTerminal/terminal';
+import runCommandInTerminal, { Terminal } from '../externalTerminal/terminal';
 
 export default function () {
 	readTasks();
@@ -48,7 +48,7 @@ export class TaskInstance {
 	startHooks: UUID[] = [];
 	stopHooks: UUID[] = [];
 
-	sessions: number[] = [];
+	sessions: Terminal[] = [];
 
 	constructor(public task: HookitTask) {
 		// bind these function so we only have 2 function pointers
@@ -57,45 +57,38 @@ export class TaskInstance {
 		this.stop = this.stop.bind(this);
 	}
 
-	runCommand(output?: string) {
+	async runCommand(output?: string) {
 		// output is the optional object passed if the event returns something
-		// const command = this.task.commands.replace('${output}', output || '');
-
-		runCommandsInTerminal(this.task.name, this.task.commands);
-
-		// process.stdout.on('data', (data: string) => {
-		// 	if (data.includes('ProcessId')) {
-		// 		const pid = data.substring(data.indexOf('ProcessId') + 12, data.indexOf(';'));
-		// 		this.sessions.push(Number(pid));
-		// 		notifyResourceChanged('taskInstances');
-		// 	}
-		// });
-	}
-
-	stop() {
-		switch (this.task.stopStrategy) {
-			case StopStrategy.All: {
-				this.sessions.forEach(() => this.terminateSessionByIndex(0));
-				break;
-			}
-			case StopStrategy.Newest: {
-				this.terminateSessionByIndex(this.sessions.length - 1);
-				break;
-			}
-			case StopStrategy.Oldest: {
-				this.terminateSessionByIndex(0);
-				break;
-			}
+		try {
+			this.sessions.push(await runCommandInTerminal(this.task.name, this.task.command));
+		} catch (err) {
+			console.error(err);
 		}
 	}
 
-	terminateSessionByIndex(index: number) {
-		const sessionToTerminate = this.sessions.splice(index, 1)[0];
+	async stop() {
+		switch (this.task.stopStrategy) {
+			case StopStrategy.All: {
+				for (const session of this.sessions) {
+					await this.terminateSessionByIndex(0);
+				}
+				break;
+			}
+			case StopStrategy.Newest: {
+				await this.terminateSessionByIndex(this.sessions.length - 1);
+				break;
+			}
+			case StopStrategy.Oldest: {
+				await this.terminateSessionByIndex(0);
+				break;
+			}
+		}
+		notifyResourceChanged('taskInstances');
+	}
 
-		// TODO
-		// ubuntu like: kill pid
-		// mac: TODO
-		exec('taskkill /f /t /pid ' + sessionToTerminate);
+	async terminateSessionByIndex(index: number) {
+		const sessionToTerminate = this.sessions.splice(index, 1)[0];
+		return await sessionToTerminate.terminate();
 	}
 }
 export const taskInstances = new Map<string, TaskInstance>();

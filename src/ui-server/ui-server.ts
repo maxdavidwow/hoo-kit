@@ -258,8 +258,12 @@ const api = {
 		},
 		terminateSession: (message: WSMessage) => {
 			const params = message.payload as { taskName: string; index: number };
-			taskInstances.get(params.taskName).terminateSessionByIndex(params.index);
-			notifyResourceChanged('taskInstances');
+			taskInstances
+				.get(params.taskName)
+				.terminateSessionByIndex(params.index)
+				.then(() => {
+					notifyResourceChanged('taskInstances');
+				});
 			return true;
 		}
 	}
