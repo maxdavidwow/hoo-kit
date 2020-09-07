@@ -2,9 +2,6 @@ import { HookitTask, UUID, TaskRetriggerStrategy, StopStrategy } from '../types'
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
-import { spawn, ChildProcessByStdio, exec, ChildProcess, fork, execFile } from 'child_process';
-import internal = require('stream');
-import { v4 as uuid } from 'uuid';
 import { notifyResourceChanged } from '../ui-server/ui-server';
 import runCommandInTerminal, { Terminal } from '../externalTerminal/terminal';
 
