@@ -46,7 +46,8 @@ export type HookitTask = {
 	stopStrategy?: StopStrategy;
 
 	/**
-	 * commands that will be run in a terminal
+	 * command that will be run in a terminal
+	 * '${output}' will be replaced with the output from the event (if there is any).
 	 */
 	command: string;
 
@@ -81,7 +82,7 @@ export type HookitEvent = {
 	prerequisite?(): boolean;
 
 	/** called for every task that uses the event */
-	subscribe(uuid: string, callback: HookCallback, args?: object): boolean;
+	subscribe(uuid: string, callback: HookCallback, args?): boolean;
 
 	/** called for every task that does not use this event anymore (task deleted/modified or before the flush event) */
 	unsubscribe?(uuid: string, args?: object): boolean;

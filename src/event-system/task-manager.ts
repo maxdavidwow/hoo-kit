@@ -57,7 +57,11 @@ export class TaskInstance {
 	async runCommand(output?: string) {
 		// output is the optional object passed if the event returns something
 		try {
-			this.sessions.push(await runCommandInTerminal(this.task.name, this.task.command));
+			if (this.task.retriggerStrategy === TaskRetriggerStrategy.Restart) {
+				this.terminateAllSessions();
+			}
+			const command = this.task.command.replace('${output}', output);
+			this.sessions.push(await runCommandInTerminal(this.task.name, command));
 		} catch (err) {
 			console.error(err);
 		}
@@ -66,9 +70,7 @@ export class TaskInstance {
 	async stop() {
 		switch (this.task.stopStrategy) {
 			case StopStrategy.All: {
-				for (const session of this.sessions) {
-					await this.terminateSessionByIndex(0);
-				}
+				this.terminateAllSessions();
 				break;
 			}
 			case StopStrategy.Newest: {
@@ -81,6 +83,12 @@ export class TaskInstance {
 			}
 		}
 		notifyResourceChanged('taskInstances');
+	}
+
+	async terminateAllSessions() {
+		for (const _ of this.sessions) {
+			await this.terminateSessionByIndex(0);
+		}
 	}
 
 	async terminateSessionByIndex(index: number) {

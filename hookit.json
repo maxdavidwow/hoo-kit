@@ -5,6 +5,10 @@
 			"startEvents": [
 				{
 					"event": "general/start"
+				},
+				{
+					"event": "time/interval",
+					"args": { "interval": 5000 }
 				}
 			],
 			"stopEvents": [
