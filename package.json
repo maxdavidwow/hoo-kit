@@ -11,13 +11,16 @@
 		"build": "tsc",
 		"publish": "tsc --inlineSourceMap false && npm publish --access public"
 	},
-	"bin": "./dist/index.js",
+	"bin": {
+		"hoo-kit": "./hoo-kit"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/wow-kit/hoo-kit.git"
 	},
 	"license": "GPLv3",
 	"dependencies": {
+		"chokidar": "^3.4.2",
 		"glob": "^7.1.6",
 		"minimist": "^1.2.5",
 		"uuid": "^8.3.0",

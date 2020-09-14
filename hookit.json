@@ -4,11 +4,11 @@
 			"name": "TestTaskV1",
 			"startEvents": [
 				{
-					"event": "general/start"
-				},
-				{
-					"event": "time/interval",
-					"args": { "interval": 5000 }
+					"event": "filesystem/on",
+					"args": {
+						"path": "C:/Users/Max/Desktop/RNI/package.json",
+						"events": ["add", "addDir", "change", "unlink", "unlinkDir"]
+					}
 				}
 			],
 			"stopEvents": [
@@ -16,7 +16,7 @@
 					"event": "general/end"
 				}
 			],
-			"command": "echo 'Test i is o' & PAUSE"
+			"command": "echo '$hookit{output}' & PAUSE"
 		},
 		{
 			"name": "TestTaskV2",

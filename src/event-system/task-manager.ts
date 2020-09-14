@@ -60,8 +60,9 @@ export class TaskInstance {
 			if (this.task.retriggerStrategy === TaskRetriggerStrategy.Restart) {
 				this.terminateAllSessions();
 			}
-			const command = this.task.command.replace('${output}', output);
+			const command = this.task.command.replace('$hookit{output}', output);
 			this.sessions.push(await runCommandInTerminal(this.task.name, command));
+			notifyResourceChanged('taskInstances');
 		} catch (err) {
 			console.error(err);
 		}

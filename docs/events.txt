@@ -3,15 +3,18 @@ General:
 	end: Triggered when hoo-kit is being stopped properly and also when this event is being removed from the task.
 
 Time:
-	date: Triggered at the given time.
-	periodic: Triggered every time the interval has passed periodically since the start of hoo-kit.
+	interval: Triggered every time the interval has been elapsed since the start of hoo-kit.
 
 Filesystem:
-	created: Triggered after a file/directory was created.
-	modified: Triggered after a file/directory was modified.
-	deleted: Triggered after a file/directory was deleted.
+	on: Triggered after the specified filesystem event has occured.
+	add
+	addDir
+	change
+	unlink
+	unlinkDir
 
 Git: all these events are triggered when the underlying git hook is triggered (https://git-scm.com/docs/githooks)
+	on: Triggered when the underlying git hook is triggered.
 	applypatch-msg
 	pre-applypatch
 	post-applypatch

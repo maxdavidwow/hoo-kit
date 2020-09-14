@@ -5,7 +5,6 @@ const timers = new Map<
 	{
 		tid: NodeJS.Timeout;
 		callback: HookCallback;
-		args: object;
 	}
 >();
 
@@ -15,7 +14,7 @@ const runInterval = (callback: HookCallback, args: { interval: number }) => {
 
 export default {
 	subscribe(uuid: string, callback: HookCallback, args) {
-		timers.set(uuid, { callback, args, tid: runInterval(callback, args) });
+		timers.set(uuid, { callback, tid: runInterval(callback, args) });
 		return true;
 	},
 
