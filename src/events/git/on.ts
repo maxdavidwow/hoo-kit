@@ -31,15 +31,13 @@ const gitHooks = [
 	'pre-push'
 ];
 
-// test
-
 const port = Number(getArgument('gitUdpPort') || '41234');
 
 export default {
 	prerequisite() {
 		// ensure that our hook script is in the every hook file
 		for (const hook in gitHooks) {
-			ensureGitHook(hook as GitHook);
+			// ensureGitHook(hook as GitHook);
 		}
 
 		// udp server so we can receive messages send from the git hook script
@@ -51,7 +49,8 @@ export default {
 		});
 
 		server.on('message', (msg) => {
-			this.triggerAllHooks(JSON.parse(msg.toString()));
+			// we replace ' with " since it is way too complicated in bash
+			this.triggerAllHooks(JSON.parse(msg.toString().replace(/'/g, '"')));
 		});
 
 		server.bind(port);
@@ -82,20 +81,24 @@ export default {
 } as HookitEvent;
 
 const gitPath = 'D:/dev/hoo-kit/.git/hooks/';
+const PREFIX = '# hookit-git-hook';
+
 function ensureGitHook(hook: GitHook) {
 	const path = gitPath + hook;
 	if (!fs.existsSync(path)) {
-		fs.writeFileSync(
-			path,
-			`
-			# hookit-git-hook: ${hook}
-			exec node test.js ${hook} ${port}
-		`
-		);
+		fs.writeFileSync(path, '#!/bin/sh');
 	}
 	const file = fs.readFileSync(path, 'utf8');
-	const startIndex = file.indexOf('# hookit-git-hook');
+	const startIndex = file.indexOf(PREFIX);
 	if (startIndex === -1) {
-		// insertScript();
+		insertScript(hook, path);
 	}
+}
+
+function insertScript(hook: GitHook, path: string) {
+	const script = `
+	${PREFIX}: ${hook}
+	MSG=$1
+	echo -n "{ 'type': '${hook}', 'msg': '$(cat "$MSG")' }" >/dev/udp/127.0.0.1/${port}
+	`;
 }
