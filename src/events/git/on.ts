@@ -96,6 +96,8 @@ function ensureGitHook(hook: GitHook) {
 }
 
 function insertScript(hook: GitHook, path: string) {
+	// bash script that gets the first argument as message and sends
+	// it and the hook type in a json format via udp to our server
 	const script = `
 	${PREFIX}: ${hook}
 	MSG=$1
