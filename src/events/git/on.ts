@@ -31,6 +31,8 @@ const gitHooks = [
 	'pre-push'
 ];
 
+// test
+
 const port = Number(getArgument('gitUdpPort') || '41234');
 
 export default {
@@ -86,16 +88,14 @@ function ensureGitHook(hook: GitHook) {
 		fs.writeFileSync(
 			path,
 			`
-			#!/bin/sh
-			\n
 			# hookit-git-hook: ${hook}
-			exec node test.js ${hook} "Test from test.js" ${port}
+			exec node test.js ${hook} ${port}
 		`
 		);
 	}
 	const file = fs.readFileSync(path, 'utf8');
 	const startIndex = file.indexOf('# hookit-git-hook');
 	if (startIndex === -1) {
-		insertScript();
+		// insertScript();
 	}
 }
