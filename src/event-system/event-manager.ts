@@ -1,5 +1,6 @@
 import { requireCustomEventModules, customEventModules } from './custom-events';
 import { HookitEvent } from '../types';
+import { mainProcess, MainProcessEvents } from '../main-process';
 
 export default function () {
 	requireCustomEventModules();
@@ -7,6 +8,16 @@ export default function () {
 
 export const defaultEvents = ['general/start', 'general/end', 'time/interval', 'filesystem/on', 'git/on'];
 export const loadedEvents = new Map<string, HookitEvent>();
+
+mainProcess.on(MainProcessEvents.Close, flushEvents);
+
+function flushEvents() {
+	loadedEvents.forEach((event) => {
+		if (event.flush) {
+			event.flush();
+		}
+	});
+}
 
 export function getEventByPath(eventPath: string): HookitEvent {
 	let event: HookitEvent;

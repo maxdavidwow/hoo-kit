@@ -61,7 +61,15 @@ export class TaskInstance {
 				this.terminateAllSessions();
 			}
 			const command = this.task.command.replace('$hookit{output}', output);
-			this.sessions.push(await runCommandInTerminal(this.task.name, command));
+			const terminalSession = await runCommandInTerminal(this.task.name, command);
+			terminalSession.onTerminated = () => {
+				// remove session when closed manually by user
+				const index = this.sessions.findIndex((s) => s === terminalSession);
+				if (index >= 0) {
+					this.sessions.splice(index, 1);
+				}
+			};
+			this.sessions.push(terminalSession);
 			notifyResourceChanged('taskInstances');
 		} catch (err) {
 			console.error(err);

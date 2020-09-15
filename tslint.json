@@ -3,6 +3,7 @@
 	"rules": {
 		"no-console": false,
 		"no-string-throw": false,
-		"max-classes-per-file": false
+		"max-classes-per-file": false,
+		"forin": false
 	}
 }

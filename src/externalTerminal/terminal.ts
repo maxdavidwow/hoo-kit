@@ -6,6 +6,8 @@ import { platform } from 'os';
 export abstract class Terminal {
 	pid: string;
 
+	onTerminated?: () => void;
+
 	constructor(pid: string) {
 		this.pid = pid;
 	}

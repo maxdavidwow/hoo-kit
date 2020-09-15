@@ -3,7 +3,7 @@
 options:
 	// flag which indicates if the ui server will be run
 	// default: true
-	--runUiServer: true | false
+	--runUiServer: boolean
 
 	// if passed the server will use the html file at the given path
 	--customUiPath: string
@@ -15,3 +15,7 @@ options:
 	// if passed the ui-server will use the given address for the websocket
 	// default: 'localhost:8081'
 	--uiServerWebsocketAddress: string
+
+	// if passed hookit will this port for the git udp server (used for icp)
+	// default: '41234'
+	--gitUdpPort: string

@@ -4,10 +4,9 @@
 			"name": "TestTaskV1",
 			"startEvents": [
 				{
-					"event": "filesystem/on",
+					"event": "git/on",
 					"args": {
-						"path": "C:/Users/Max/Desktop/RNI/package.json",
-						"events": ["add", "addDir", "change", "unlink", "unlinkDir"]
+						"hooks": ["pre-commit"]
 					}
 				}
 			],
