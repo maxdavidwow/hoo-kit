@@ -121,14 +121,6 @@ function initTask(task: HookitTask) {
 	taskInstances.set(task.name, taskInstance);
 
 	// hook onto start end stop events
-	for (const eventDef of task.startEvents) {
-		const hookId = hook({
-			eventPath: eventDef.event,
-			callback: taskInstance.runCommand,
-			args: eventDef.args
-		});
-		taskInstance.startHooks.push(hookId);
-	}
 	if (task.stopEvents) {
 		for (const eventDef of task.stopEvents) {
 			const hookId = hook({
@@ -138,5 +130,13 @@ function initTask(task: HookitTask) {
 			});
 			taskInstance.stopHooks.push(hookId);
 		}
+	}
+	for (const eventDef of task.startEvents) {
+		const hookId = hook({
+			eventPath: eventDef.event,
+			callback: taskInstance.runCommand,
+			args: eventDef.args
+		});
+		taskInstance.startHooks.push(hookId);
 	}
 }
