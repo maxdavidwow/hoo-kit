@@ -10,7 +10,14 @@
 			"name": "Launch Program",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}\\dist\\index.js",
-			"args": ["--customUiPath", "D:/dev/hoo-kit/default-ui/dist/default-ui", "--runUiServer", "false"],
+			"args": [
+				"--customUiPath",
+				"D:/dev/hoo-kit/default-ui/dist/default-ui",
+				"--runUiServer",
+				"false",
+				"--gitHooksPath",
+				"../../../.git/hooks/"
+			],
 			"preLaunchTask": "tsc -inlineSourcemap",
 			// "postDebugTask": "kill cmd",
 			"console": "integratedTerminal",

@@ -19,3 +19,7 @@ options:
 	// if passed hookit will this port for the git udp server (used for icp)
 	// default: '41234'
 	--gitUdpPort: string
+
+	// if passed hookit will use this relative path for the git hooks
+	// default: '../../../../.git/hooks/'
+	--gitHooksPath: string
