@@ -5,6 +5,14 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Attach by Process ID",
+			"processId": "${command:PickProcess}",
+			"request": "attach",
+			"skipFiles": ["<node_internals>/**"],
+			"type": "pwa-node"
+		},
+
+		{
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
@@ -16,7 +24,7 @@
 				"--runUiServer",
 				"false",
 				"--gitHooksPath",
-				"../../../.git/hooks/"
+				"D:/dev/hoo-kit/.git/hooks"
 			],
 			"preLaunchTask": "tsc -inlineSourcemap",
 			// "postDebugTask": "kill cmd",

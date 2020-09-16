@@ -21,6 +21,7 @@ function cleanUpTasks() {
 		for (const hookId of instance.stopHooks) {
 			unhook(hookId);
 		}
+		instance.terminateAllSessions();
 	});
 }
 

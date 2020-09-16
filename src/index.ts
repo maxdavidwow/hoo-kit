@@ -8,21 +8,26 @@ export * from './types';
 export { addCustomEventsModule } from './event-system/custom-events';
 
 export default function init() {
-	hookOntoProcessExit();
-	if (!loadConfig()) {
+	try {
+		hookOntoProcessExit();
+		loadConfig();
+		startEventManger();
+		startTaskManager();
+		startUiServer();
+	} catch (err) {
 		mainProcess.emit(MainProcessEvents.Close);
-		return;
+		throw err;
 	}
-	startEventManger();
-	startTaskManager();
-	startUiServer();
 }
 
+const runFromCli = require.main === module;
+const isRequiredFromBin = module.parent && module.parent.filename.endsWith('hoo-kit');
 // if run from cli start up immediately
-if (require.main === module) {
+if (isRequiredFromBin || runFromCli) {
+	console.log('start');
 	init();
 	// create a loop so node doesn't exit
 	(function loop() {
-		setTimeout(loop, 5000);
+		mainProcess.currentLoopTimeout = setTimeout(loop, 5000);
 	})();
 }

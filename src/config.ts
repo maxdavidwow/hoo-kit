@@ -4,13 +4,11 @@ import { HookitConfig } from './types';
 import * as parseArgs from 'minimist';
 
 let config: HookitConfig;
-export function loadConfig(): boolean {
+export function loadConfig() {
 	try {
 		config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as HookitConfig;
-		return true;
 	} catch (ex) {
-		console.log('There is no valid hookit.json in this working directory.');
-		return false;
+		throw new Error('There is no valid hookit.json in this working directory.');
 	}
 }
 export function getConfig(): HookitConfig {

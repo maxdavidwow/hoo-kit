@@ -4,8 +4,6 @@ import { getArgument } from '../../config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-let server: dgram.Socket;
-
 const hooks = new Map<string, { callback: HookCallback; hooks: GitHook[] }>();
 
 type GitHookResponse = { type: GitHook; msg: string };
@@ -35,6 +33,8 @@ const gitHooks = [
 const port = Number(getArgument('gitUdpPort') || '41234');
 
 export default {
+	server: undefined,
+
 	prerequisite() {
 		// ensure that our hook script is in the every hook file
 		for (const hook of gitHooks) {
@@ -42,19 +42,29 @@ export default {
 		}
 
 		// udp server so we can receive messages send from the git hook script
-		server = dgram.createSocket('udp4');
+		this.server = dgram.createSocket('udp4');
 
-		server.on('error', (err) => {
-			console.log(`git udp server error:\n${err.stack}`);
-			server.close();
+		this.server.on('close', () => {
+			console.log('udp closed');
 		});
 
-		server.on('message', (msg) => {
+		this.server.on('error', (err) => {
+			console.log(`git udp server error:\n${err.stack}`);
+			this.server.close();
+			this.server = null;
+		});
+
+		this.server.on('message', (msg) => {
 			// we replace ' with " since it is way too complicated in bash
 			this.triggerAllHooks(JSON.parse(msg.toString().replace(/'/g, '"')));
 		});
 
-		server.bind(port);
+		this.server.on('listening', () => {
+			console.log('Listening for Git events.');
+		});
+
+		this.server.bind(port);
+
 		return true;
 	},
 
@@ -78,12 +88,16 @@ export default {
 	},
 
 	flush() {
-		server.close();
+		if (this.server) {
+			console.log('Shutting down Git udp');
+			this.server.close();
+			this.server = null;
+		}
 	}
 } as HookitEvent;
 
-let gitPath = String(getArgument('gitHooksPath') || '../../../../.git/hooks/');
-gitPath = path.join(__dirname, gitPath);
+let gitPath = String(getArgument('gitHooksPath') || path.join(process.cwd() + '/.git/hooks/'));
+gitPath = path.resolve(gitPath);
 
 const PREFIX = '# hookit-git-hook';
 

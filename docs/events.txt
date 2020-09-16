@@ -36,4 +36,6 @@ Git: all these events are triggered when the underlying git hook is triggered (h
 VSCode events (not in default events):
 	before-save: Triggered before a file will be saved.
 	after-save: Triggered after a file was being saved.
-	expose as many VSCode events as possible (that could be usefull)
+
+	git-on: extends the git/on events by using vscode internal events
+		before-branch-change: triggers when a branch is changed via vscode
