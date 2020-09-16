@@ -17,16 +17,19 @@ const gitHooks = [
 	'pre-applypatch',
 	'post-applypatch',
 	'pre-commit',
+	'pre-merge-commit',
 	'prepare-commit-msg',
 	'commit-msg',
 	'post-commit',
 	'pre-rebase',
 	'post-checkout',
 	'post-merge',
+	'pre-push',
 	'post-update',
+	'push-to-checkout',
 	'pre-auto-gc',
 	'post-rewrite',
-	'pre-push'
+	'sendemail-validate'
 ];
 
 const port = Number(getArgument('gitUdpPort') || '41234');

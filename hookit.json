@@ -4,15 +4,13 @@
 			"name": "TestTaskV1",
 			"startEvents": [
 				{
+					"event": "general/start"
+				},
+				{
 					"event": "git/on",
 					"args": {
-						"hooks": ["pre-commit"]
+						"hooks": ["post-checkout"]
 					}
-				}
-			],
-			"stopEvents": [
-				{
-					"event": "general/end"
 				}
 			],
 			"command": "echo '$hookit{output}' & PAUSE"
