@@ -127,6 +127,9 @@ function removeScript(text: string) {
 function getScript(hook: GitHook) {
 	// bash script that gets the first argument as message and sends
 	// it and the hook type in a json format via udp to our server
+
+	// TODO: cat "$HOOKIT_MSG" prints an error in git output if the
+	// variable isn't a string??
 	return (
 		'\n\n' +
 		`${PREFIX}: ${hook}` +
