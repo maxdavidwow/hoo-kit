@@ -1,27 +1,43 @@
-import * as dgram from 'dgram';
+import * as net from 'net';
 import { getArgument } from './config';
 import { mainProcess, MainProcessEvents } from './main-process';
 import { UUID } from './types';
 
-const port = Number(getArgument('udpPort') || '41234');
+const port = Number(getArgument('ipcPort') || '41234');
 
 type ListenerCallback = (data: unknown) => void;
 
-type IPCMessage = { event: string; data: unknown };
+export type IPCMessage = { event: string; data: unknown };
 
 class IPC {
 	public port = port;
 
+	private subscribedClients = new Map<string, net.Socket[]>();
+
 	private listeners = new Map<string, { filter?: string; cb: ListenerCallback }>();
 
-	private server: dgram.Socket;
+	private server: net.Server;
 
 	constructor() {
 		this.initUdpServer();
 	}
 
 	initUdpServer() {
-		this.server = dgram.createSocket('udp4');
+		this.server = net.createServer((client) => {
+			client.on('data', (data) => {
+				this.handleMsg(data, client);
+			});
+			client.on('error', (err) => {});
+			client.on('close', () => {
+				this.subscribedClients.forEach((sockets) => {
+					// remove client from subcribers
+					const index = sockets.findIndex((socket) => socket === client);
+					if (index >= 0) {
+						sockets.splice(index, 1);
+					}
+				});
+			});
+		});
 
 		this.server.on('error', (err) => {
 			console.log(`ipc server error:\n${err.stack}`);
@@ -29,15 +45,11 @@ class IPC {
 			this.server = null;
 		});
 
-		this.server.on('message', (msg) => {
-			this.triggerListeners(msg);
-		});
-
 		this.server.on('listening', () => {
 			console.log('Listening for events.');
 		});
 
-		this.server.bind(port);
+		this.server.listen(port);
 
 		mainProcess.on(MainProcessEvents.Close, () => {
 			if (this.server) {
@@ -48,10 +60,18 @@ class IPC {
 		});
 	}
 
-	triggerListeners(msg: Buffer) {
+	handleMsg(msg: Buffer, client: net.Socket) {
 		try {
 			const message = JSON.parse(msg.toString()) as IPCMessage;
 			if (message.event) {
+				if (message.event === 'SUBSCRIBE_FOR') {
+					const eventToSubscribeFor = message.data as string;
+					if (!this.subscribedClients.has(eventToSubscribeFor)) {
+						this.subscribedClients.set(eventToSubscribeFor, []);
+					}
+					this.subscribedClients.get(eventToSubscribeFor).push(client);
+					return;
+				}
 				this.listeners.forEach((listener) => {
 					if (listener.filter) {
 						if (listener.filter !== message.event) {
@@ -78,7 +98,13 @@ class IPC {
 
 	send(msg: IPCMessage) {
 		// broadcast
-		this.server.send(JSON.stringify(msg));
+		const data = JSON.stringify(msg);
+		const subscribers = this.subscribedClients.get(msg.event);
+		if (subscribers) {
+			subscribers.forEach((client) => {
+				client.write(data, 'utf-8');
+			});
+		}
 	}
 }
 

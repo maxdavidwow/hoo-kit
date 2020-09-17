@@ -55,6 +55,11 @@ export type HookitTask = {
 	 * default: false
 	 */
 	hideTerminal?: boolean;
+
+	/** should the task shell should stay alive when the command has run
+	 * default: true
+	 */
+	stayAlive?: boolean;
 };
 
 /**

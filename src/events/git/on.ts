@@ -118,13 +118,11 @@ function removeScript(text: string) {
 }
 
 function getScript(hook: GitHook) {
-	// bash script that gets the first argument as message and sends
-	// it and the hook type in a json format via udp to our server
 	return (
 		'\n\n' +
 		`${PREFIX}: ${hook}` +
 		'\n' +
-		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }' >/dev/udp/127.0.0.1/${ipc.port}` +
+		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }' | netcat 127.0.0.1 ${ipc.port}` +
 		'\n' +
 		`${PREFIX}: end`
 	);

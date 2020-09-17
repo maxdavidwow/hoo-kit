@@ -13,7 +13,7 @@
 					}
 				}
 			],
-			"command": "echo '$hookit{output}' & PAUSE"
+			"command": "ng serve"
 		},
 		{
 			"name": "TestTaskV2",
@@ -28,7 +28,7 @@
 					"event": "general/end"
 				}
 			],
-			"command": "echo TestTaskV1 is running & pause >nul"
+			"command": "echo '$hookit{output}' & PAUSE"
 		},
 		{
 			"name": "TestTaskV3",

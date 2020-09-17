@@ -12,13 +12,9 @@ options:
 	// default: 'localhost:8080'
 	--uiServerAddress: string
 
-	// if passed the ui-server will use the given address for the websocket
-	// default: 'localhost:8081'
-	--uiServerWebsocketAddress: string
-
-	// if passed hookit will this port for the ipc udp server (git, terminal handling, etc.)
+	// if passed hookit will this port for the ipc tcp server (git, terminal handling, etc.)
 	// default: '41234'
-	--udpPort: string
+	--ipcPort: string
 
 	// if passed hookit will use this relative path for the git hooks
 	// default: './.git/hooks/'

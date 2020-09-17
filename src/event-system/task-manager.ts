@@ -3,7 +3,7 @@ import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import { notifyResourceChanged } from '../ui-server/ui-server';
-import runCommandInTerminal, { Terminal } from '../terminal/externalTerminal';
+import { Terminal } from '../terminal/terminal';
 
 export default function () {
 	readTasks();
@@ -31,7 +31,8 @@ const taskDefaults = {
 	active: true,
 	retriggerStrategy: TaskRetriggerStrategy.Restart,
 	stopStrategy: StopStrategy.All,
-	hideTerminal: false
+	hideTerminal: false,
+	stayAlive: true
 };
 function readTasks() {
 	for (const task of getConfig().tasks) {
@@ -62,14 +63,7 @@ export class TaskInstance {
 				this.terminateAllSessions();
 			}
 			const command = this.task.command.replace('$hookit{output}', output);
-			const terminalSession = await runCommandInTerminal(this.task.name, command);
-			terminalSession.onTerminated = () => {
-				// remove session when closed manually by user
-				const index = this.sessions.findIndex((s) => s === terminalSession);
-				if (index >= 0) {
-					this.sessions.splice(index, 1);
-				}
-			};
+			const terminalSession = new Terminal(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
 			this.sessions.push(terminalSession);
 			notifyResourceChanged('taskInstances');
 		} catch (err) {
@@ -92,7 +86,6 @@ export class TaskInstance {
 				break;
 			}
 		}
-		notifyResourceChanged('taskInstances');
 	}
 
 	async terminateAllSessions() {
@@ -102,8 +95,16 @@ export class TaskInstance {
 	}
 
 	async terminateSessionByIndex(index: number) {
-		const sessionToTerminate = this.sessions.splice(index, 1)[0];
-		return await sessionToTerminate.terminate();
+		this.sessions[index].terminate();
+	}
+
+	onTerminated(session: Terminal) {
+		// remove session when closed
+		const index = this.sessions.findIndex((s) => s === session);
+		if (index >= 0) {
+			this.sessions.splice(index, 1);
+			notifyResourceChanged('taskInstances');
+		}
 	}
 }
 export const taskInstances = new Map<string, TaskInstance>();

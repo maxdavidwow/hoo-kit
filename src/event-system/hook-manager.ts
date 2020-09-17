@@ -31,7 +31,9 @@ export function unhook(id: UUID): boolean {
 		}
 		const hookParam = hooks.get(id);
 		const event = getEventByPath(hookParam.eventPath);
-		event.unsubscribe(id, hookParam.args);
+		if (event.unsubscribe) {
+			event.unsubscribe(id, hookParam.args);
+		}
 		return true;
 	} catch (ex) {
 		return false;
