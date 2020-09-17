@@ -3,7 +3,7 @@ import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import { notifyResourceChanged } from '../ui-server/ui-server';
-import runCommandInTerminal, { Terminal } from '../externalTerminal/terminal';
+import runCommandInTerminal, { Terminal } from '../terminal/externalTerminal';
 
 export default function () {
 	readTasks();

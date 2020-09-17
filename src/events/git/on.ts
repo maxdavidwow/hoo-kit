@@ -1,12 +1,13 @@
 import { HookitEvent, HookCallback } from '../../types';
-import * as dgram from 'dgram';
+
 import { getArgument } from '../../config';
 import * as fs from 'fs';
 import * as path from 'path';
+import ipc from '../../ipc';
 
 const hooks = new Map<string, { callback: HookCallback; hooks: GitHook[] }>();
 
-type GitHookResponse = { type: GitHook; msg: string };
+type GitHookResponse = { type: GitHook; from: string; msg: string };
 
 type GitHook = string;
 
@@ -30,9 +31,8 @@ const gitHooks = [
 	'sendemail-validate'
 ];
 
-const port = Number(getArgument('gitUdpPort') || '41234');
-
 export default {
+	ipcId: 'GIT_ON_LISTENER',
 	server: undefined,
 
 	prerequisite() {
@@ -41,35 +41,18 @@ export default {
 			ensureGitHook(hook as GitHook);
 		}
 
-		// udp server so we can receive messages send from the git hook script
-		this.server = dgram.createSocket('udp4');
-
-		this.server.on('close', () => {
-			console.log('udp closed');
-		});
-
-		this.server.on('error', (err) => {
-			console.log(`git udp server error:\n${err.stack}`);
-			this.server.close();
-			this.server = null;
-		});
-
-		this.server.on('message', (msg) => {
-			// we replace ' with " since it is way too complicated in bash
-			this.triggerAllHooks(JSON.parse(msg.toString().replace(/'/g, '"')));
-		});
-
-		this.server.on('listening', () => {
-			console.log('Listening for Git events.');
-		});
-
-		this.server.bind(port);
+		ipc.on(
+			this.ipcId,
+			(data: GitHookResponse) => {
+				this.triggerAllHooks(data);
+			},
+			'GIT/ON'
+		);
 
 		return true;
 	},
 
 	triggerAllHooks(message: GitHookResponse) {
-		console.log(message);
 		hooks.forEach((h) => {
 			if (h.hooks.includes(message.type)) {
 				h.callback(message.msg);
@@ -88,11 +71,7 @@ export default {
 	},
 
 	flush() {
-		if (this.server) {
-			console.log('Shutting down Git udp');
-			this.server.close();
-			this.server = null;
-		}
+		ipc.off(this.ipcId);
 	}
 } as HookitEvent;
 
@@ -145,7 +124,9 @@ function getScript(hook: GitHook) {
 		'\n\n' +
 		`${PREFIX}: ${hook}` +
 		'\n' +
-		`echo -n "{ 'type': '${hook}', 'msg': '' }" >/dev/udp/127.0.0.1/${port}` +
+		`echo -n "{ \"event\": \"GIT/ON\", \"data\": { \"type\": \"${hook}\", \"from\": \"${process.cwd()}\", \"msg\": \"\" } }" >/dev/udp/127.0.0.1/${
+			ipc.port
+		}` +
 		'\n' +
 		`${PREFIX}: end`
 	);
