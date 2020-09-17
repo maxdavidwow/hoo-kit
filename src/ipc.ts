@@ -49,18 +49,22 @@ class IPC {
 	}
 
 	triggerListeners(msg: Buffer) {
-		const message = JSON.parse(msg.toString()) as IPCMessage;
-		if (message.event) {
-			this.listeners.forEach((listener) => {
-				if (listener.filter) {
-					if (listener.filter !== message.event) {
-						return;
+		try {
+			const message = JSON.parse(msg.toString()) as IPCMessage;
+			if (message.event) {
+				this.listeners.forEach((listener) => {
+					if (listener.filter) {
+						if (listener.filter !== message.event) {
+							return;
+						}
 					}
-				}
-				listener.cb(message.data);
-			});
-		} else {
-			console.log('invalid ipc message received', message);
+					listener.cb(message.data);
+				});
+			} else {
+				throw 'No event in message';
+			}
+		} catch (ex) {
+			console.log('invalid ipc message received', ex);
 		}
 	}
 
