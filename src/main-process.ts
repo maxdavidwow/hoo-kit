@@ -1,8 +1,13 @@
+import * as treekill from 'tree-kill';
+
 export enum MainProcessEvents {
-	Close = 'close'
+	Close = 'close',
+	AfterClose = 'after_close'
 }
 
 class Process {
+	public active = true;
+
 	public currentLoopTimeout: NodeJS.Timeout;
 
 	private listeners = new Map<string, (() => void)[]>();
@@ -30,9 +35,18 @@ export const mainProcess = new Process();
 
 export function hookOntoProcessExit() {
 	const onExit = () => {
+		mainProcess.active = false;
 		console.log('Cleaning up...');
 		mainProcess.emit(MainProcessEvents.Close, () => {
-			clearTimeout(mainProcess.currentLoopTimeout);
+			// wait so termination events can be send
+			setTimeout(() => {
+				mainProcess.emit(MainProcessEvents.AfterClose, () => {
+					clearTimeout(mainProcess.currentLoopTimeout);
+				});
+			}, 50);
+		});
+		treekill(process.pid, 'SIGKILL', () => {
+			process.exit();
 		});
 	};
 

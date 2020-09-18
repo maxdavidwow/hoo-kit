@@ -3,6 +3,7 @@ import ipc from '../ipc';
 import { v4 as uuid } from 'uuid';
 import { UUID } from '../types';
 import { join } from 'path';
+import { mainProcess } from '../main-process';
 
 export class Terminal {
 	private id: UUID;
@@ -20,7 +21,7 @@ export class Terminal {
 	}
 
 	public terminate() {
-		this.sendToTerminal({ event: 'terminate' });
+		this.sendToTerminal({ event: 'terminate', data: !mainProcess.active });
 	}
 
 	private handleTerminalMsg(event: string) {

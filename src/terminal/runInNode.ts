@@ -1,6 +1,6 @@
-import { spawn } from 'child_process';
-import * as net from 'net';
-import { IPCMessage } from '../ipc';
+import { ChildProcess, spawn } from 'child_process';
+import * as dgram from 'dgram';
+import * as treekill from 'tree-kill';
 
 const ID = process.argv[2];
 
@@ -9,24 +9,24 @@ const HOST = '127.0.0.1';
 
 const TITLE = process.argv[4];
 
-const client = new net.Socket();
+const client = dgram.createSocket('udp4');
 
-function send(data: unknown) {
-	setTimeout(() => {
-		client.write(JSON.stringify(data));
-	}, 1);
+function send(event: string, data: unknown) {
+	return new Promise((res) => {
+		client.send(JSON.stringify({ event, data }), PORT, HOST, res);
+	});
 }
 function sendEvent(event: string) {
-	send({ event: 'MSG_FROM_TERMINAL_' + ID, data: event });
+	send('MSG_FROM_TERMINAL_' + ID, event);
 }
 
 client.connect(PORT, HOST, () => {
-	send({ event: 'SUBSCRIBE_FOR', data: 'MSG_TO_TERMINAL_' + ID });
+	send('SUBSCRIBE_FOR', 'MSG_TO_TERMINAL_' + ID);
 	sendEvent('ready');
 });
 
-client.on('data', (data) => {
-	const message = JSON.parse(data.toString()) as IPCMessage;
+client.on('message', (data) => {
+	const message = JSON.parse(data.toString()) as { event: string; data: unknown };
 
 	const eventData = message.data as { event: string; data?: unknown };
 	switch (eventData.event) {
@@ -36,22 +36,17 @@ client.on('data', (data) => {
 			break;
 		}
 		case 'terminate': {
-			terminate();
+			terminate(eventData.data as boolean);
 			break;
 		}
 	}
 });
 
-function terminate() {
-	sendEvent('terminated');
-	client.end();
-	process.exit();
-}
-
+let commandProcess: ChildProcess;
 function runCommand(command: string, stayAlive: boolean) {
-	const procc = spawn(command, { shell: true, stdio: 'inherit' });
+	commandProcess = spawn(command, { shell: true, stdio: 'inherit' });
 
-	procc.on('exit', () => {
+	commandProcess.on('exit', () => {
 		// after command was executed
 		if (!stayAlive) {
 			terminate();
@@ -73,6 +68,15 @@ function setTitle(title: string) {
 	setTimeout(() => (process.title = process.argv[4]), 100);
 }
 
+async function terminate(sendTerminated = true) {
+	if (sendTerminated) {
+		await sendEvent('terminated');
+	}
+	treekill(commandProcess.pid, 'SIGKILL', () => {
+		process.exit();
+	});
+}
+
 // catches ctrl+c event
 process.on('SIGINT', terminate);
 
@@ -80,3 +84,5 @@ process.on('SIGINT', terminate);
 process.on('SIGUSR1', terminate);
 process.on('SIGUSR2', terminate);
 process.on('uncaughtException', terminate);
+
+setTitle(TITLE);

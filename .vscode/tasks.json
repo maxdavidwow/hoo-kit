@@ -10,6 +10,12 @@
 			"label": "kill cmd",
 			"type": "shell",
 			"command": "taskkill /im cmd.exe"
+		},
+		{
+			"label": "Trigger Hookit Debug Function",
+			"type": "shell",
+			"command": "node trigger.js",
+			"problemMatcher": []
 		}
 	]
 }

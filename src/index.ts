@@ -3,15 +3,17 @@ import startEventManger from './event-system/event-manager';
 import startTaskManager from './event-system/task-manager';
 import startUiServer from './ui-server/ui-server';
 import { hookOntoProcessExit, mainProcess, MainProcessEvents } from './main-process';
+import { waitForIpcInit } from './ipc';
 
 export * from './types';
 export { addCustomEventsModule } from './event-system/custom-events';
 
-export default function init() {
+export default async function init() {
 	try {
 		hookOntoProcessExit();
 		loadConfig();
 		startEventManger();
+		await waitForIpcInit();
 		startTaskManager();
 		startUiServer();
 	} catch (err) {

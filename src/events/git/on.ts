@@ -122,7 +122,7 @@ function getScript(hook: GitHook) {
 		'\n\n' +
 		`${PREFIX}: ${hook}` +
 		'\n' +
-		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }'` + //  | netcat 127.0.0.1 ${ipc.port}
+		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }' >/dev/udp/127.0.0.1/${ipc.port}` +
 		'\n' +
 		`${PREFIX}: end`
 	);
