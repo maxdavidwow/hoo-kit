@@ -4,6 +4,7 @@ import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import { notifyResourceChanged } from '../ui-server/ui-server';
 import { Terminal } from '../terminal/terminal';
+import { ExternalTerminal } from '../terminal/externalTerminal';
 
 export default function () {
 	readTasks();
@@ -63,7 +64,7 @@ export class TaskInstance {
 				this.terminateAllSessions();
 			}
 			const command = this.task.command.replace('$hookit{output}', output);
-			const terminalSession = new Terminal(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
+			const terminalSession = new ExternalTerminal(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
 			this.sessions.push(terminalSession);
 			notifyResourceChanged('taskInstances');
 		} catch (err) {
