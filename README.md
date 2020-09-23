@@ -11,13 +11,7 @@ Install:
 <br/>
 Run:
 <br/>
-*from a node module*
-<br/>
-```javascript
-import runHookit from 'hoo-kit';
-runHookit();
-```
-*from the cli just run*
+*just call hoo-kit from the cli*
 <br/>
 ```
 hoo-kit
