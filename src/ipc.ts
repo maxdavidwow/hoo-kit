@@ -1,5 +1,6 @@
 import * as dgram from 'dgram';
 import { getArgument } from './config';
+import { ApiCall, handleApiCall } from './ipc-api';
 import { mainProcess, MainProcessEvents } from './main-process';
 import { UUID } from './types';
 
@@ -58,10 +59,21 @@ class IPC {
 		});
 	}
 
+	private sendPrivate(client: dgram.RemoteInfo, msg: IPCMessage) {
+		this.server.send(JSON.stringify(msg), client.port, client.address);
+	}
+
 	handleMsg(msg: Buffer, sender: dgram.RemoteInfo) {
 		try {
 			const message = JSON.parse(msg.toString()) as IPCMessage;
 			if (message.event) {
+				if (message.event === 'HOOKIT_DEBUG') {
+					this.handleMsg(
+						Buffer.from(JSON.stringify({ event: 'HOOKIT_API_CALL', data: { id: '12345689', api: 'setConfig' } })),
+						sender
+					);
+					return;
+				}
 				if (message.event === 'SUBSCRIBE_FOR') {
 					const eventToSubscribeFor = message.data as string;
 					if (!this.subscribedClients.has(eventToSubscribeFor)) {
@@ -70,7 +82,8 @@ class IPC {
 					this.subscribedClients.get(eventToSubscribeFor).push(sender);
 					return;
 				}
-				if (message.event === 'HOOKIT_DEBUG') {
+				if (message.event === 'HOOKIT_API_CALL') {
+					handleApiCall(message.data as ApiCall, this.sendPrivate.bind(this, sender));
 					return;
 				}
 				this.listeners.forEach((listener) => {

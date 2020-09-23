@@ -12,7 +12,6 @@ const TITLE = process.argv[4];
 const client = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
 function send(event: string, data: unknown) {
-	console.log(PORT, HOST);
 	return new Promise((res) => {
 		client.send(JSON.stringify({ event, data }), res);
 	});

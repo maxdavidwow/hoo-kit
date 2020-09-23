@@ -22,13 +22,13 @@ async function startup() {
 		const skipDefaultInit = getArgument('skipDefaultInit');
 		// if run from cli start up immediately
 		if (!skipDefaultInit) {
-			console.log('start');
 			init();
 			// create a loop so node doesn't exit
 			(function loop() {
 				mainProcess.currentLoopTimeout = setTimeout(loop, 5000);
 			})();
 		}
+		console.log('hoo-kit running!');
 	} catch (err) {
 		mainProcess.emit(MainProcessEvents.Close);
 		throw err;
