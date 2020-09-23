@@ -3,8 +3,6 @@ import { getArgument } from './config';
 import { mainProcess, MainProcessEvents } from './main-process';
 import { UUID } from './types';
 
-import * as treekill from 'tree-kill';
-
 const port = Number(getArgument('udpPort') || '41234');
 
 type ListenerCallback = (data: unknown) => void;

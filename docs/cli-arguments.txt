@@ -1,6 +1,11 @@
 1. first argument is the path to the hoo-kit.json, if omitted the working directory will be used
 
 options:
+	// flag wich indicates if hoo-kit will run the default initialization
+	// set this to false if you want to remote control hoo-kit via the ipc channel
+	// default: false
+	--skipDefaultInit: boolean
+
 	// flag which indicates if the ui server will be run
 	// default: true
 	--runUiServer: boolean

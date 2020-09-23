@@ -7,16 +7,21 @@ let config: HookitConfig;
 export function loadConfig() {
 	try {
 		config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as HookitConfig;
+		saveConfig = () => fs.writeFileSync(configPath, JSON.stringify(config));
 	} catch (ex) {
 		throw new Error('There is no valid hookit.json in this working directory.');
 	}
 }
+
+export function setConfig(hookitConfig: HookitConfig, onSave: () => void) {
+	config = hookitConfig;
+	saveConfig = onSave;
+}
 export function getConfig(): HookitConfig {
 	return config;
 }
-export function saveConfig() {
-	fs.writeFileSync(configPath, JSON.stringify(config));
-}
+
+export let saveConfig: () => void;
 
 const args = parseArgs(process.argv.slice(2));
 export function getArgument(argumentName: string) {

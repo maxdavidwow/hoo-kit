@@ -5,7 +5,7 @@ export enum MainProcessEvents {
 	AfterClose = 'after_close'
 }
 
-class Process {
+export class Process {
 	public active = true;
 
 	public currentLoopTimeout: NodeJS.Timeout;
@@ -33,38 +33,38 @@ class Process {
 
 export const mainProcess = new Process();
 
-export function hookOntoProcessExit() {
-	const onExit = () => {
-		mainProcess.active = false;
-		console.log('Cleaning up...');
-		mainProcess.emit(MainProcessEvents.Close, () => {
-			// wait so termination events can be send
-			setTimeout(() => {
-				mainProcess.emit(MainProcessEvents.AfterClose, () => {
-					clearTimeout(mainProcess.currentLoopTimeout);
-				});
-			}, 50);
-		});
-		treekill(process.pid, 'SIGKILL', () => {
-			process.exit();
-		});
-	};
+export function exit() {
+	mainProcess.active = false;
+	console.log('Cleaning up...');
+	mainProcess.emit(MainProcessEvents.Close, () => {
+		// wait so termination events can be send
+		setTimeout(() => {
+			mainProcess.emit(MainProcessEvents.AfterClose, () => {
+				clearTimeout(mainProcess.currentLoopTimeout);
+			});
+		}, 50);
+	});
+	treekill(process.pid, 'SIGKILL', () => {
+		process.exit();
+	});
+}
 
+export function hookOntoProcessExit() {
 	// we don't need this event yet since it will be called only
 	// after node finished when node event loop is done which menas
 	// we also do
 	// process.on('exit', onExit);
 
 	// catches ctrl+c event
-	process.on('SIGINT', onExit);
+	process.on('SIGINT', exit);
 
 	// catches "kill pid" (for example: nodemon restart)
-	process.on('SIGUSR1', onExit);
-	process.on('SIGUSR2', onExit);
+	process.on('SIGUSR1', exit);
+	process.on('SIGUSR2', exit);
 
 	// catches uncaught exceptions
 	process.on('uncaughtException', (error) => {
 		console.error(error);
-		onExit();
+		exit();
 	});
 }

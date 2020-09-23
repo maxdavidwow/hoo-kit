@@ -9,21 +9,17 @@ const HOST = '127.0.0.1';
 
 const TITLE = process.argv[4];
 
-const client = dgram.createSocket('udp4');
+const client = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
 function send(event: string, data: unknown) {
+	console.log(PORT, HOST);
 	return new Promise((res) => {
-		client.send(JSON.stringify({ event, data }), PORT, HOST, res);
+		client.send(JSON.stringify({ event, data }), res);
 	});
 }
 function sendEvent(event: string) {
 	send('MSG_FROM_TERMINAL_' + ID, event);
 }
-
-client.connect(PORT, HOST, () => {
-	send('SUBSCRIBE_FOR', 'MSG_TO_TERMINAL_' + ID);
-	sendEvent('ready');
-});
 
 client.on('message', (data) => {
 	const message = JSON.parse(data.toString()) as { event: string; data: unknown };
@@ -40,6 +36,11 @@ client.on('message', (data) => {
 			break;
 		}
 	}
+});
+
+client.connect(PORT, HOST, () => {
+	send('SUBSCRIBE_FOR', 'MSG_TO_TERMINAL_' + ID);
+	sendEvent('ready');
 });
 
 let commandProcess: ChildProcess;
