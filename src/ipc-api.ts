@@ -1,71 +1,99 @@
 import { IPCMessage } from './ipc';
+import * as dgram from 'dgram';
 import { HookitConfig, UUID } from './types';
 import { v4 as uuid } from 'uuid';
 
-import { getConfig, setConfig } from './config';
-import startEventManger from './event-system/event-manager';
-import startTaskManager from './event-system/task-manager';
-import startUiServer from './ui-server/ui-server';
+import { setConfig } from './config';
+import { initializeHookit } from '.';
+import { setTerminalClass } from './event-system/task-manager';
+import { ipcListeners, ipcRequestListeners, RemoteTerminal, RemoteTerminalRequest } from './terminal/remoteTerminal';
 
-export class ApiCall {
-	id = uuid() as UUID;
+export interface ApiCall {
+	id: UUID;
 	api: string;
 	data?: unknown;
+	subscribe?: boolean;
+	handled: boolean;
 }
 
-/**
- * calls 'setConfig' to set the hoo-kit config and send a
- * response with the id when the config is saved
- */
-class SetConfig extends ApiCall {
-	api = 'setConfig';
+export class Api {
+	client: dgram.Socket;
 
-	constructor(hookitConfig: HookitConfig) {
-		super();
-		this.data = hookitConfig;
+	private openApiCalls: {
+		[key: string]: { call: ApiCall; resolve?: (data?: unknown) => void; eventListener?: (data: unknown) => void };
+	} = {};
+
+	constructor(port: number, host: string, onConnected?: () => void) {
+		this.client = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+		this.client.on('message', (data) => {
+			this.onResponse(JSON.parse(data.toString()));
+		});
+		this.client.connect(port, host, onConnected);
+	}
+
+	private onResponse(message: IPCMessage) {
+		const forCall = this.openApiCalls[message.event];
+		if (!forCall) {
+			return;
+		}
+		if (!forCall.call.handled) {
+			// first response is resolve
+			if (forCall.resolve) {
+				forCall.resolve(message.data);
+			}
+			forCall.call.handled = true;
+		} else {
+			// succeding calls are subscription responses
+			if (forCall.call.subscribe && forCall.eventListener) {
+				forCall.eventListener(message.data);
+			}
+		}
+	}
+
+	private send(call: ApiCall) {
+		this.client.send(JSON.stringify({ event: 'HOOKIT_API_CALL', data: call }));
+	}
+
+	private async makeApiCall(api: string, data: unknown, eventListener?: (data: unknown) => void) {
+		return new Promise((res) => {
+			const call = { id: uuid(), api, data, subscribe: !!eventListener, handled: false } as ApiCall;
+			this.openApiCalls[call.id] = { call, resolve: res, eventListener };
+			this.send(call);
+		});
+	}
+
+	async setConfig(config: HookitConfig, saveFn: () => void) {
+		await this.makeApiCall('setConfig', config, saveFn);
+	}
+
+	async initialize() {
+		await this.makeApiCall('init', undefined);
+	}
+
+	async useRemoteTerminal(terminalMessageReceived: (request: RemoteTerminalRequest) => void) {
+		await this.makeApiCall('useRemoteTerminal', undefined, terminalMessageReceived);
 	}
 }
 
-/**
- * calls 'startEventManager' to start up the event-manager
- */
-class StartEventManger extends ApiCall {
-	api = 'startEventManager';
-}
-
-/**
- * calls 'startTaskManager' to start up the task-manager
- */
-class StartTaskManger extends ApiCall {
-	api = 'startTaskManager';
-}
-
-/**
- * calls 'startUiServer' to start up the ui-server
- */
-class StartUiServer extends ApiCall {
-	api = 'startUiServer';
-}
-
-export const HOOKIT_API = {
-	SetConfig,
-	StartEventManger,
-	StartTaskManger,
-	StartUiServer
-};
-
 const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) => void) => void } = {
 	setConfig(call, response) {
-		setConfig(call.data, () => response({ event: call.id, data: getConfig() }));
+		setConfig(call.data, () => {
+			console.log('TODO: implement onSaved');
+		});
+		response({ event: call.id, data: true });
 	},
-	startEventManager() {
-		startEventManger();
+	init(call, response) {
+		initializeHookit();
+		response({ event: call.id, data: true });
 	},
-	startTaskManager() {
-		startTaskManager();
+	useRemoteTerminal(call, response) {
+		ipcListeners.set(call.id, (request: RemoteTerminalRequest) => response({ event: call.id, data: request }));
+		setTerminalClass(RemoteTerminal);
+		response({ event: call.id, data: true });
 	},
-	startUiServer() {
-		startUiServer();
+	remoteTerminalRequest(call, response) {
+		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteTerminalRequest));
+		response({ event: call.id, data: true });
 	}
 };
 
