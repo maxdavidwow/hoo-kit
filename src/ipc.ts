@@ -49,7 +49,6 @@ class IPC {
 
 		this.server.on('listening', () => {
 			this.onInit();
-			console.log('Listening for events.');
 		});
 
 		this.server.bind(port);
@@ -133,8 +132,12 @@ class IPC {
 	}
 }
 
-const mainIpc = new IPC();
-export default mainIpc;
+export let mainIpc: IPC;
+export function initIPC() {
+	if (!mainIpc) {
+		mainIpc = new IPC();
+	}
+}
 
 export function waitForIpcInit() {
 	return new Promise((res) => {

@@ -3,10 +3,9 @@ import startEventManger from './event-system/event-manager';
 import startTaskManager from './event-system/task-manager';
 import startUiServer from './ui-server/ui-server';
 import { hookOntoProcessExit, mainProcess, MainProcessEvents } from './main-process';
-import { waitForIpcInit } from './ipc';
+import { initIPC, waitForIpcInit } from './ipc';
 
-function init() {
-	loadConfig();
+export function initializeHookit() {
 	startEventManger();
 	startTaskManager();
 	startUiServer();
@@ -15,14 +14,15 @@ function init() {
 async function startup() {
 	hookOntoProcessExit();
 	try {
+		initIPC();
 		await waitForIpcInit();
 
-		// const runFromCli = require.main === module;
-		// const isRequiredFromBin = module.parent && module.parent.filename.endsWith('hoo-kit');
-		const skipDefaultInit = getArgument('skipDefaultInit');
+		const skipDefaultInit = getArgument('skipDefaultInit') === 'true';
+		console.log(process.argv);
 		// if run from cli start up immediately
 		if (!skipDefaultInit) {
-			init();
+			loadConfig();
+			initializeHookit();
 			// create a loop so node doesn't exit
 			(function loop() {
 				mainProcess.currentLoopTimeout = setTimeout(loop, 5000);
@@ -35,4 +35,9 @@ async function startup() {
 	}
 }
 
-startup();
+const runFromCli = require.main === module;
+const isRequiredFromBin = module.parent && module.parent.filename.endsWith('hoo-kit');
+// dont startup when used as module import
+if (runFromCli || isRequiredFromBin) {
+	startup();
+}
