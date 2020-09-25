@@ -3,7 +3,7 @@ import { HookitEvent, HookCallback } from '../../types';
 import { getArgument } from '../../config';
 import * as fs from 'fs';
 import * as path from 'path';
-import ipc from '../../ipc';
+import { mainIpc } from '../../ipc';
 
 const hooks = new Map<string, { callback: HookCallback; hooks: GitHook[] }>();
 
@@ -41,7 +41,7 @@ export default {
 			ensureGitHook(hook as GitHook);
 		}
 
-		ipc.on(
+		mainIpc.on(
 			this.ipcId,
 			(data: GitHookResponse) => {
 				this.triggerAllHooks(data);
@@ -71,7 +71,7 @@ export default {
 	},
 
 	flush() {
-		ipc.off(this.ipcId);
+		mainIpc.off(this.ipcId);
 	}
 } as HookitEvent;
 
@@ -122,7 +122,7 @@ function getScript(hook: GitHook) {
 		'\n\n' +
 		`${PREFIX}: ${hook}` +
 		'\n' +
-		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }' >/dev/udp/127.0.0.1/${ipc.port}` +
+		`echo -n '{ "event": "GIT/ON", "data": { "type": "${hook}", "msg": "" } }' >/dev/udp/127.0.0.1/${mainIpc.port}` +
 		'\n' +
 		`${PREFIX}: end`
 	);

@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
 import { join } from 'path';
-import mainIpc from '../ipc';
+import { mainIpc } from '../ipc';
 import { mainProcess } from '../main-process';
 import { Terminal } from './terminal';
 
