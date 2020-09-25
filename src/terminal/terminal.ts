@@ -1,7 +1,7 @@
 import { UUID } from '../types';
 import { v4 as uuid } from 'uuid';
 
-export abstract class Terminal {
+export class Terminal {
 	public id: UUID;
 
 	constructor(
@@ -13,5 +13,7 @@ export abstract class Terminal {
 		this.id = uuid();
 	}
 
-	public abstract terminate();
+	public terminate() {
+		throw new Error('Implement terminate functionality.');
+	}
 }

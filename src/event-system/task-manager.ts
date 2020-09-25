@@ -11,6 +11,12 @@ export default function () {
 	initAllTasks();
 }
 
+let TerminalClass: typeof Terminal = ExternalTerminal;
+export function setTerminalClass(terminal: typeof Terminal) {
+	// TODO: maybe let devs load a external terminal class from file
+	TerminalClass = terminal;
+}
+
 mainProcess.on(MainProcessEvents.Close, cleanUpTasks);
 
 function cleanUpTasks() {
@@ -64,7 +70,7 @@ export class TaskInstance {
 				this.terminateAllSessions();
 			}
 			const command = this.task.command.replace('$hookit{output}', output);
-			const terminalSession = new ExternalTerminal(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
+			const terminalSession = new TerminalClass(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
 			this.sessions.push(terminalSession);
 			notifyResourceChanged('taskInstances');
 		} catch (err) {
