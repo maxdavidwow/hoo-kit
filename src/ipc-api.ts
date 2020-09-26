@@ -6,21 +6,27 @@ import { v4 as uuid } from 'uuid';
 import { setConfig } from './config';
 import { initializeHookit } from '.';
 import { setTerminalClass } from './event-system/task-manager';
-import { ipcListeners, ipcRequestListeners, RemoteTerminal, RemoteTerminalRequest } from './terminal/remoteTerminal';
+import { ipcListeners, ipcRequestListeners, RemoteTerminal, RemoteTerminalMessage } from './terminal/remoteTerminal';
 
 export interface ApiCall {
 	id: UUID;
 	api: string;
 	data?: unknown;
-	subscribe?: boolean;
-	handled: boolean;
+	subscription?: boolean;
 }
 
+export enum DataType {
+	Events,
+	Tasks,
+	TaskInstances
+}
+
+// external
 export class Api {
 	client: dgram.Socket;
 
 	private openApiCalls: {
-		[key: string]: { call: ApiCall; resolve?: (data?: unknown) => void; eventListener?: (data: unknown) => void };
+		[key: string]: { handled: boolean; call: ApiCall; resolve?: (data?: unknown) => void; eventListener?: (data: unknown) => void };
 	} = {};
 
 	constructor(port: number, host: string, onConnected?: () => void) {
@@ -32,20 +38,20 @@ export class Api {
 	}
 
 	private onResponse(message: IPCMessage) {
-		const forCall = this.openApiCalls[message.event];
-		if (!forCall) {
+		const callMeta = this.openApiCalls[message.event];
+		if (!callMeta) {
 			return;
 		}
-		if (!forCall.call.handled) {
+		if (!callMeta.handled) {
 			// first response is resolve
-			if (forCall.resolve) {
-				forCall.resolve(message.data);
+			if (callMeta.resolve) {
+				callMeta.resolve(message.data);
 			}
-			forCall.call.handled = true;
+			callMeta.handled = true;
 		} else {
 			// succeding calls are subscription responses
-			if (forCall.call.subscribe && forCall.eventListener) {
-				forCall.eventListener(message.data);
+			if (callMeta.call.subscription && callMeta.eventListener) {
+				callMeta.eventListener(message.data);
 			}
 		}
 	}
@@ -56,8 +62,8 @@ export class Api {
 
 	private async makeApiCall(api: string, data: unknown, eventListener?: (data: unknown) => void) {
 		return new Promise((res) => {
-			const call = { id: uuid(), api, data, subscribe: !!eventListener, handled: false } as ApiCall;
-			this.openApiCalls[call.id] = { call, resolve: res, eventListener };
+			const call = { id: uuid(), api, data, subscription: !!eventListener } as ApiCall;
+			this.openApiCalls[call.id] = { call, resolve: res, eventListener, handled: false };
 			this.send(call);
 		});
 	}
@@ -70,11 +76,20 @@ export class Api {
 		await this.makeApiCall('init', undefined);
 	}
 
-	async useRemoteTerminal(terminalMessageReceived: (request: RemoteTerminalRequest) => void) {
-		await this.makeApiCall('useRemoteTerminal', undefined, terminalMessageReceived);
+	async useRemoteTerminal(terminalRequestReceived: (msg: RemoteTerminalMessage) => void) {
+		await this.makeApiCall('useRemoteTerminal', undefined, terminalRequestReceived);
+	}
+
+	async remoteTerminalResponse(msg: RemoteTerminalMessage) {
+		await this.makeApiCall('remoteTerminalResponse', msg);
+	}
+
+	async subscribeForDataChange(dataType: DataType, onDataChanged: (data: unknown) => void) {
+		await this.makeApiCall('subscribeForDataChange', dataType, onDataChanged);
 	}
 }
 
+// internal
 const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) => void) => void } = {
 	setConfig(call, response) {
 		setConfig(call.data, () => {
@@ -87,12 +102,16 @@ const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) =
 		response({ event: call.id, data: true });
 	},
 	useRemoteTerminal(call, response) {
-		ipcListeners.set(call.id, (request: RemoteTerminalRequest) => response({ event: call.id, data: request }));
+		ipcListeners.set(call.id, (request: RemoteTerminalMessage) => response({ event: call.id, data: request }));
 		setTerminalClass(RemoteTerminal);
 		response({ event: call.id, data: true });
 	},
-	remoteTerminalRequest(call, response) {
-		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteTerminalRequest));
+	remoteTerminalResponse(call, response) {
+		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteTerminalMessage));
+		response({ event: call.id, data: true });
+	},
+	subscribeForDataChange(call, response) {
+		// TODO: response when data for dataType changes
 		response({ event: call.id, data: true });
 	}
 };
