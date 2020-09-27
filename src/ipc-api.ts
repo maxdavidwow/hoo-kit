@@ -7,18 +7,13 @@ import { setConfig } from './config';
 import { initializeHookit } from '.';
 import { setTerminalClass } from './event-system/task-manager';
 import { ipcListeners, ipcRequestListeners, RemoteTerminal, RemoteTerminalMessage } from './terminal/remoteTerminal';
+import { listenForResouceChange, Resource } from './resources';
 
 export interface ApiCall {
 	id: UUID;
 	api: string;
 	data?: unknown;
 	subscription?: boolean;
-}
-
-export enum DataType {
-	Events,
-	Tasks,
-	TaskInstances
 }
 
 // external
@@ -84,8 +79,11 @@ export class Api {
 		await this.makeApiCall('remoteTerminalResponse', msg);
 	}
 
-	async subscribeForDataChange(dataType: DataType, onDataChanged: (data: unknown) => void) {
-		await this.makeApiCall('subscribeForDataChange', dataType, onDataChanged);
+	async subscribeForResourceChange(
+		onResourceChanged: (resourceChange: { resourceData: unknown; resourceType: Resource }) => void,
+		resource?: Resource
+	) {
+		await this.makeApiCall('subscribeForResourceChange', resource, onResourceChanged);
 	}
 }
 
@@ -110,8 +108,11 @@ const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) =
 		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteTerminalMessage));
 		response({ event: call.id, data: true });
 	},
-	subscribeForDataChange(call, response) {
-		// TODO: response when data for dataType changes
+	subscribeForResourceChange(call, response) {
+		listenForResouceChange(
+			(resourceData, resourceType) => response({ event: call.id, data: { resourceData, resourceType } }),
+			call.data as Resource
+		);
 		response({ event: call.id, data: true });
 	}
 };

@@ -2,9 +2,9 @@ import { HookitTask, UUID, TaskRetriggerStrategy, StopStrategy } from '../types'
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
-import { notifyResourceChanged } from '../ui-server/ui-server';
 import { Terminal } from '../terminal/terminal';
 import { ExternalTerminal } from '../terminal/externalTerminal';
+import { notifyResourceChanged, Resource } from '../resources';
 
 export default function () {
 	readTasks();
@@ -45,6 +45,7 @@ function readTasks() {
 	for (const task of getConfig().tasks) {
 		tasks.set(task.name, { ...taskDefaults, ...task });
 	}
+	notifyResourceChanged(Resource.Tasks);
 }
 
 /**
@@ -72,7 +73,7 @@ export class TaskInstance {
 			const command = this.task.command.replace('$hookit{output}', output);
 			const terminalSession = new TerminalClass(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
 			this.sessions.push(terminalSession);
-			notifyResourceChanged('taskInstances');
+			notifyResourceChanged(Resource.TaskInstances);
 		} catch (err) {
 			console.error(err);
 		}
@@ -97,11 +98,11 @@ export class TaskInstance {
 
 	async terminateAllSessions() {
 		for (const _ of this.sessions) {
-			await this.terminateSessionByIndex(0);
+			this.terminateSessionByIndex(0);
 		}
 	}
 
-	async terminateSessionByIndex(index: number) {
+	terminateSessionByIndex(index: number) {
 		this.sessions[index].terminate();
 	}
 
@@ -110,7 +111,7 @@ export class TaskInstance {
 		const index = this.sessions.findIndex((s) => s === session);
 		if (index >= 0) {
 			this.sessions.splice(index, 1);
-			notifyResourceChanged('taskInstances');
+			notifyResourceChanged(Resource.TaskInstances);
 		}
 	}
 }

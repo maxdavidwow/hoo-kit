@@ -1,9 +1,11 @@
 import { requireCustomEventModules, customEventModules } from './custom-events';
 import { HookitEvent } from '../types';
 import { mainProcess, MainProcessEvents } from '../main-process';
+import { notifyResourceChanged, Resource } from '../resources';
 
 export default function () {
 	requireCustomEventModules();
+	notifyResourceChanged(Resource.Events);
 }
 
 export const defaultEvents = ['general/start', 'general/end', 'time/interval', 'filesystem/on', 'git/on'];

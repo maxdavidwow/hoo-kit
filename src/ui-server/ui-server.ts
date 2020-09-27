@@ -6,10 +6,9 @@ import * as url from 'url';
 import { getArgument } from '../config';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import { tasks, taskInstances } from '../event-system/task-manager';
-import { defaultEvents } from '../event-system/event-manager';
-import { customEventModules } from '../event-system/custom-events';
 import { UUID, HookitTask } from '../types';
 import { v4 as uuid, validate as validateUUID } from 'uuid';
+import { getResource, listenForResouceChange, notifyResourceChanged, Resource } from '../resources';
 
 // extending web socket type (really quirky namespace for ws...)
 type WebSocket = WS & { isAlive: boolean };
@@ -62,6 +61,7 @@ export default function () {
 			}
 		});
 	});
+	listenForResouceChange(onResourceChanged);
 
 	const ping = () => {
 		// iteralte over all sockets and check if they are still used
@@ -148,16 +148,18 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 			// basically we listen for changes to the resource changes
 			// on a running instance can only be made by methods
 
+			const resource = message.actionPath as Resource;
 			// check if resource exists
-			if (!api.resources[message.actionPath]) {
+			if (!(resource in Resource)) {
 				error = 'Resource Not found.';
 				break;
 			}
-			if (!resourceStreams.has(message.actionPath)) {
+
+			if (!resourceStreams.has(resource)) {
 				// create resource stream instance
-				resourceStreams.set(message.actionPath, []);
+				resourceStreams.set(resource, []);
 			}
-			const streams = resourceStreams.get(message.actionPath);
+			const streams = resourceStreams.get(resource);
 			// we create a new message instance with the action changed to resource
 			// since this will be the desired action for succeeding stream responses
 			streams.push({
@@ -166,20 +168,22 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 			});
 		}
 		case 'RESOURCE': {
-			if (api.resources[message.actionPath]) {
-				result = api.resources[message.actionPath](message);
+			const resource = message.actionPath as Resource;
+			if (resource in Resource) {
+				result = getResource(message.actionPath as Resource);
 			} else {
 				error = 'Resource Not found.';
 			}
 			break;
 		}
 		case 'CLOSE_RESOURCE_STREAM': {
-			if (resourceStreams.has(message.action)) {
-				const streams = resourceStreams.get(message.action);
+			const resource = message.actionPath as Resource;
+			if (resourceStreams.has(resource)) {
+				const streams = resourceStreams.get(resource);
 				const ownStreamIndex = streams.findIndex((s) => s.message.id === message.id);
 				streams.splice(ownStreamIndex, 1);
 				if (streams.length > 0) {
-					resourceStreams.delete(message.action);
+					resourceStreams.delete(resource);
 				}
 			}
 			break;
@@ -187,10 +191,10 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 
 		case 'METHOD': {
 			try {
-				if (!api.methods[message.actionPath]) {
+				if (!api[message.actionPath]) {
 					throw 'Method not found.';
 				}
-				result = api.methods[message.actionPath](message);
+				result = api[message.actionPath](message);
 			} catch (ex) {
 				error = ex;
 			}
@@ -206,65 +210,27 @@ async function handleApiCall(message: WSMessage, socket: WebSocket) {
 	socket.send(JSON.stringify(message));
 }
 
-const resourceStreams = new Map<string, { message: WSMessage; socket: WebSocket }[]>();
-export function notifyResourceChanged(...resources: string[]) {
-	// for every resource and every streaming socket
-	for (const resource of resources) {
-		const streams = resourceStreams.get(resource);
-		if (streams) {
-			for (const stream of streams) {
-				setImmediate(handleApiCall.bind(this, stream.message, stream.socket));
-			}
+const resourceStreams = new Map<Resource, { message: WSMessage; socket: WebSocket }[]>();
+function onResourceChanged(_: unknown, resource: Resource) {
+	const streams = resourceStreams.get(resource);
+	if (streams) {
+		for (const stream of streams) {
+			setImmediate(handleApiCall.bind(this, stream.message, stream.socket));
 		}
 	}
 }
 
-export type EventList = {
-	[namepsace: string]: string[];
-};
-
 const api = {
-	resources: {
-		tasks: () => {
-			const entries = [];
-			tasks.forEach((task) => {
-				entries.push(task);
-			});
-			return entries;
-		},
-		taskInstances: () => {
-			const entries = [];
-			taskInstances.forEach((instance) => {
-				entries.push(instance);
-			});
-			return entries;
-		},
-		events: () => {
-			const events: EventList = {};
-			events.default = defaultEvents;
-			customEventModules.forEach((cem, moduleName) => {
-				Object.keys(cem).forEach((eventName) => events[moduleName].push(eventName));
-			});
-			return events;
-		}
+	saveTask: (message: WSMessage) => {
+		const params = message.payload as { taskName: string; task: HookitTask };
+		tasks.set(params.taskName, params.task);
+		notifyResourceChanged(Resource.Tasks);
+		return true;
 	},
-
-	methods: {
-		saveTask: (message: WSMessage) => {
-			const params = message.payload as { taskName: string; task: HookitTask };
-			tasks.set(params.taskName, params.task);
-			notifyResourceChanged('tasks');
-			return true;
-		},
-		terminateSession: (message: WSMessage) => {
-			const params = message.payload as { taskName: string; index: number };
-			taskInstances
-				.get(params.taskName)
-				.terminateSessionByIndex(params.index)
-				.then(() => {
-					notifyResourceChanged('taskInstances');
-				});
-			return true;
-		}
+	terminateSession: async (message: WSMessage) => {
+		const params = message.payload as { taskName: string; index: number };
+		await taskInstances.get(params.taskName).terminateSessionByIndex(params.index);
+		notifyResourceChanged(Resource.TaskInstances);
+		return true;
 	}
 };
