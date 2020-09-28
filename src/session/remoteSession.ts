@@ -10,7 +10,11 @@ export const ipcRequestListeners = new Map<string, SessionRequestListener>();
 export interface RemoteSessionMessage {
 	id: UUID;
 	type: string;
-	data?: unknown;
+	data: {
+		title: string;
+		command: string;
+		stayAlive: boolean;
+	};
 }
 
 export class RemoteSession extends Session {
