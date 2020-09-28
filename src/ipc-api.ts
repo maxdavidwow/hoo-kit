@@ -5,8 +5,8 @@ import { v4 as uuid } from 'uuid';
 
 import { setConfig } from './config';
 import { initializeHookit } from '.';
-import { setTerminalClass } from './event-system/task-manager';
-import { ipcListeners, ipcRequestListeners, RemoteTerminal, RemoteTerminalMessage } from './terminal/remoteTerminal';
+import { setSessionClass } from './event-system/task-manager';
+import { ipcListeners, ipcRequestListeners, RemoteSession, RemoteSessionMessage } from './session/remoteSession';
 import { listenForResouceChange, Resource } from './resources';
 
 export interface ApiCall {
@@ -71,11 +71,11 @@ export class Api {
 		await this.makeApiCall('init', undefined);
 	}
 
-	async useRemoteTerminal(terminalRequestReceived: (msg: RemoteTerminalMessage) => void) {
-		await this.makeApiCall('useRemoteTerminal', undefined, terminalRequestReceived);
+	async useRemoteSession(sessionRequestReceived: (msg: RemoteSessionMessage) => void) {
+		await this.makeApiCall('useRemoteSession', undefined, sessionRequestReceived);
 	}
 
-	async remoteTerminalResponse(msg: RemoteTerminalMessage) {
+	async remoteTerminalResponse(msg: RemoteSessionMessage) {
 		await this.makeApiCall('remoteTerminalResponse', msg);
 	}
 
@@ -99,13 +99,13 @@ const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) =
 		initializeHookit();
 		response({ event: call.id, data: true });
 	},
-	useRemoteTerminal(call, response) {
-		ipcListeners.set(call.id, (request: RemoteTerminalMessage) => response({ event: call.id, data: request }));
-		setTerminalClass(RemoteTerminal);
+	useRemoteSession(call, response) {
+		ipcListeners.set(call.id, (request: RemoteSessionMessage) => response({ event: call.id, data: request }));
+		setSessionClass(RemoteSession);
 		response({ event: call.id, data: true });
 	},
 	remoteTerminalResponse(call, response) {
-		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteTerminalMessage));
+		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteSessionMessage));
 		response({ event: call.id, data: true });
 	},
 	subscribeForResourceChange(call, response) {

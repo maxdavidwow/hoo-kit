@@ -1,14 +1,14 @@
 import { UUID } from '../types';
 import { v4 as uuid } from 'uuid';
 
-export class Terminal {
+export class Session {
 	public id: UUID;
 
 	constructor(
 		public title: string,
 		public command: string,
 		public stayAlive: boolean,
-		public onTerminated?: (instance: Terminal) => void
+		public onTerminated?: (instance: Session) => void
 	) {
 		this.id = uuid();
 	}

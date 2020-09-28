@@ -2,8 +2,8 @@ import { HookitTask, UUID, TaskRetriggerStrategy, StopStrategy } from '../types'
 import { getConfig } from '../config';
 import { hook, unhook } from './hook-manager';
 import { mainProcess, MainProcessEvents } from '../main-process';
-import { Terminal } from '../terminal/terminal';
-import { ExternalTerminal } from '../terminal/externalTerminal';
+import { Session } from '../session/session';
+import { TerminalSession } from '../session/terminalSession';
 import { notifyResourceChanged, Resource } from '../resources';
 
 export default function () {
@@ -11,10 +11,10 @@ export default function () {
 	initAllTasks();
 }
 
-let TerminalClass: typeof Terminal = ExternalTerminal;
-export function setTerminalClass(terminal: typeof Terminal) {
+let SessionClass: typeof Session = TerminalSession;
+export function setSessionClass(sessionClass: typeof Session) {
 	// TODO: maybe let devs load a external terminal class from file
-	TerminalClass = terminal;
+	SessionClass = sessionClass;
 }
 
 mainProcess.on(MainProcessEvents.Close, cleanUpTasks);
@@ -55,7 +55,7 @@ export class TaskInstance {
 	startHooks: UUID[] = [];
 	stopHooks: UUID[] = [];
 
-	sessions: Terminal[] = [];
+	sessions: Session[] = [];
 
 	constructor(public task: HookitTask) {
 		// bind these function so we only have 2 function pointers
@@ -71,8 +71,8 @@ export class TaskInstance {
 				this.terminateAllSessions();
 			}
 			const command = this.task.command.replace('$hookit{output}', output);
-			const terminalSession = new TerminalClass(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
-			this.sessions.push(terminalSession);
+			const session = new SessionClass(this.task.name, command, this.task.stayAlive, this.onTerminated.bind(this));
+			this.sessions.push(session);
 			notifyResourceChanged(Resource.TaskInstances);
 		} catch (err) {
 			console.error(err);
@@ -106,7 +106,7 @@ export class TaskInstance {
 		this.sessions[index].terminate();
 	}
 
-	onTerminated(session: Terminal) {
+	onTerminated(session: Session) {
 		// remove session when closed
 		const index = this.sessions.findIndex((s) => s === session);
 		if (index >= 0) {

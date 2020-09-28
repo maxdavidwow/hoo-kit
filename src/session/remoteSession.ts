@@ -1,20 +1,20 @@
 import { mainProcess } from '../main-process';
 import { UUID } from '../types';
-import { Terminal } from './terminal';
+import { Session } from './session';
 
-type TerminalRequestListener = (request: RemoteTerminalMessage) => void;
+type SessionRequestListener = (request: RemoteSessionMessage) => void;
 
-export const ipcListeners = new Map<string, TerminalRequestListener>();
-export const ipcRequestListeners = new Map<string, TerminalRequestListener>();
+export const ipcListeners = new Map<string, SessionRequestListener>();
+export const ipcRequestListeners = new Map<string, SessionRequestListener>();
 
-export interface RemoteTerminalMessage {
+export interface RemoteSessionMessage {
 	id: UUID;
 	type: string;
 	data?: unknown;
 }
 
-export class RemoteTerminal extends Terminal {
-	constructor(title: string, command: string, stayAlive: boolean, onTerminated?: (instance: Terminal) => void) {
+export class RemoteSession extends Session {
+	constructor(title: string, command: string, stayAlive: boolean, onTerminated?: (instance: Session) => void) {
 		super(title, command, stayAlive, onTerminated);
 		ipcRequestListeners.set(this.id, (response) => {
 			if (response.id !== this.id) {
@@ -35,7 +35,7 @@ export class RemoteTerminal extends Terminal {
 			id: this.id,
 			type,
 			data
-		} as RemoteTerminalMessage;
+		} as RemoteSessionMessage;
 		ipcListeners.forEach((listener) => listener(newRequest));
 	}
 

@@ -1,6 +1,6 @@
 import { HookCallback, UUID } from '../types';
 import { getEventByPath } from './event-manager';
-import { v4 as uuid, validate as validateUUID } from 'uuid';
+import { v4 as uuid, validate as validateUUID } from '../session/node_modules/uuid';
 
 export type HookParameter = {
 	eventPath: string;

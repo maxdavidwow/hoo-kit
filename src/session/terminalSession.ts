@@ -2,12 +2,12 @@ import { ChildProcess, spawn } from 'child_process';
 import { join } from 'path';
 import { mainIpc } from '../ipc';
 import { mainProcess } from '../main-process';
-import { Terminal } from './terminal';
+import { Session } from './session';
 
-export class ExternalTerminal extends Terminal {
+export class TerminalSession extends Session {
 	private spawner: ChildProcess;
 
-	constructor(title: string, command: string, stayAlive: boolean, onTerminated?: (instance: Terminal) => void) {
+	constructor(title: string, command: string, stayAlive: boolean, onTerminated?: (instance: Session) => void) {
 		super(title, command, stayAlive, onTerminated);
 		this.startTerminal();
 	}

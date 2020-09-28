@@ -7,7 +7,7 @@ import { getArgument } from '../config';
 import { mainProcess, MainProcessEvents } from '../main-process';
 import { tasks, taskInstances } from '../event-system/task-manager';
 import { UUID, HookitTask } from '../types';
-import { v4 as uuid, validate as validateUUID } from 'uuid';
+import { v4 as uuid, validate as validateUUID } from '../session/node_modules/uuid';
 import { getResource, listenForResouceChange, notifyResourceChanged, Resource } from '../resources';
 
 // extending web socket type (really quirky namespace for ws...)
