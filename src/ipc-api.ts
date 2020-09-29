@@ -75,8 +75,8 @@ export class Api {
 		await this.makeApiCall('useRemoteSession', undefined, sessionRequestReceived);
 	}
 
-	async remoteTerminalResponse(msg: RemoteSessionMessage) {
-		await this.makeApiCall('remoteTerminalResponse', msg);
+	async remoteSessionResponse(msg: RemoteSessionMessage) {
+		await this.makeApiCall('remoteSessionResponse', msg);
 	}
 
 	async subscribeForResourceChange(
@@ -104,7 +104,7 @@ const apiHandler: { [key: string]: (call: ApiCall, response: (msg: IPCMessage) =
 		setSessionClass(RemoteSession);
 		response({ event: call.id, data: true });
 	},
-	remoteTerminalResponse(call, response) {
+	remoteSessionResponse(call, response) {
 		ipcRequestListeners.forEach((requestListener) => requestListener(call.data as RemoteSessionMessage));
 		response({ event: call.id, data: true });
 	},
